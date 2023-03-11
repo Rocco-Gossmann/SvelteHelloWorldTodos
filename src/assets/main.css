@@ -1,0 +1,5 @@
+.text-center { text-align: center; }
+
+:root {
+    --spacing: .5rem !important;
+}
