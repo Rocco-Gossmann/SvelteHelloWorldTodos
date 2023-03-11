@@ -9,8 +9,14 @@ Help me to learn:
 
 ## Roadmap
 ### Step 1 - Basics
-- ⬜ Get a basic Todo App interface going
+- ✔️ Get a basic Todo App interface going
 - ⬜ Store Todos in LocalStorage
+- ⬜ Making the App Offline available (ServiceWorker)
+
+### Step 1a - Make things look good
+- ⬜ Find a better way, to send Toasts / Messages to the client (Alert Sucks)
+- ⬜ add some Font Awesome Goodness
+- ⬜ Animations
 
 ### Step 2 - More than a Todo List
 - ⬜ Setup IndexedDB => Store Todos there
