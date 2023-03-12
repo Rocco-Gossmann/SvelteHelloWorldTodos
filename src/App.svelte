@@ -5,6 +5,10 @@
     import TodoList from './components/TodoList.svelte';
 </script>
 
+<svelte:head>
+    <base href="/SvelteHelloWorldTodos"/>
+</svelte:head>
+
 <nav>
     <ul>
         <li><strong>HelloWorld Todo's</strong></li>
