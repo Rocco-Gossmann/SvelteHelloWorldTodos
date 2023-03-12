@@ -6,7 +6,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 export default defineConfig({
   plugins: [svelte(), VitePWA({
     registerType: "autoUpdate",
-    base: "/SvelteHelloWorldTodos",  
+    base: "/SvelteHelloWorldTodos/",  
     manifest: {
       name: "HelloWorld-Todos",
       short_name: "HWTodos",
