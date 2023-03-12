@@ -10,7 +10,7 @@ Help me to learn:
 ## Roadmap
 ### Step 1 - Basics
 - ✔️ Get a basic Todo App interface going
-- ⬜ Store Todos in LocalStorage
+- ✔ Store Todos in LocalStorage
 - ⬜ Making the App Offline available (ServiceWorker)
 
 ### Step 1a - Make things look good

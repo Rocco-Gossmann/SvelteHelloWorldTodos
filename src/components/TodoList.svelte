@@ -14,7 +14,7 @@
 <article class:done={todo.done}>
     <span><input type="checkbox" 
         bind:checked={todo.done} 
-        on:click={() => todo.done = !todo.done} /></span>
+        on:click={() => {todo.done = !todo.done; $todos = $todos}} /></span>
 
     <span class="txt">{todo.description}</span>
 
