@@ -1,1 +1,1 @@
-{"name":"HelloWorld-Todos","short_name":"HWTodos","start_url":"/","display":"standalone","background_color":"#ffffff","lang":"en","scope":"/","id":"de.roccogossmann.svelte.helloworldtodos","icons":[{"src":"/vite.svg","sizes":"512x512"}]}
+{"name":"HelloWorld-Todos","short_name":"HWTodos","start_url":"/SvelteHelloWorldTodos","display":"standalone","background_color":"#ffffff","lang":"en","scope":"/SvelteHelloWorldTodos","id":"de.roccogossmann.svelte.helloworldtodos","icons":[{"src":"/vite.svg","sizes":"512x512"}]}
