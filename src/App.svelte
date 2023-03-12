@@ -10,7 +10,7 @@
         <li><strong>HelloWorld Todo's</strong></li>
     </ul>
     <ul>
-        <li><a href="https://github.com/Rocco-Gossmann/SvelteHelloWorldTodos">GitHub</a></li>
+        <li><a href="https://github.com/Rocco-Gossmann/SvelteHelloWorldTodos" target="_blank">GitHub</a></li>
     </ul>
 </nav>
 
