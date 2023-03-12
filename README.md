@@ -1,6 +1,8 @@
 # HelloWorld Todos
 
-Todo Apps are kind of the "Hello World" when learning a new Framework.
+Todo Apps are kind of the "Hello World" when learning a new Framework
+
+Use it yourself here => https://rocco-gossmann.github.io/SvelteHelloWorldTodos/
 ## Purpose
 Help me to learn:
 - The ins and outs of Svelte and npm
@@ -11,7 +13,7 @@ Help me to learn:
 ### Step 1 - Basics
 - ✔️ Get a basic Todo App interface going
 - ✔ Store Todos in LocalStorage
-- ⬜ Making the App Offline available (ServiceWorker)
+- ✔ Making the App Offline available (ServiceWorker)
 
 ### Step 1a - Make things look good
 - ⬜ Find a better way, to send Toasts / Messages to the client (Alert Sucks)
