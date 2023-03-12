@@ -4,9 +4,9 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [svelte(), VitePWA({
+  base: "/SvelteHelloWorldTodos/",  
+  plugins: [ VitePWA({
     registerType: "autoUpdate",
-    base: "/SvelteHelloWorldTodos/",  
     manifest: {
       name: "HelloWorld-Todos",
       short_name: "HWTodos",
@@ -18,7 +18,7 @@ export default defineConfig({
         }
       ] 
     }
-  })],
+  }), svelte()],
   build: {
     outDir: "./docs",
   }
