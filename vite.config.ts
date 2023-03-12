@@ -13,7 +13,7 @@ export default defineConfig({
       id: "de.roccogossmann.svelte.helloworldtodos",
       "icons": [
         {
-          src: "/vite.svg",
+          src: "vite.svg",
           sizes: "512x512" 
         }
       ] 
