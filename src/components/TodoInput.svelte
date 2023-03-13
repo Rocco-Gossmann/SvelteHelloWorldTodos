@@ -1,5 +1,6 @@
 <script lang="ts">
     import { todos, type ITodo } from '../data/Todos';
+    import { toast } from '../lib/components/Toast.svelte';
 
     let todo: ITodo = {
         description: '',
@@ -8,7 +9,7 @@
 
     const addTodo = () => {
         if (todo.description.trim() == '') {
-            alert('nothing to add');
+            toast("noting to add", "alert");
         } else {
             todo.description = todo.description.trim();
             $todos.push(todo);

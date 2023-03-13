@@ -16,7 +16,7 @@ Help me to learn:
 - ✔ Making the App Offline available (ServiceWorker)
 
 ### Step 1a - Make things look good
-- ⬜ Find a better way, to send Toasts / Messages to the client (Alert Sucks)
+- ️✔ Find a better way, to send Toasts / Messages to the client (Alert Sucks)
 - ⬜ add some Font Awesome Goodness
 - ⬜ Animations
 

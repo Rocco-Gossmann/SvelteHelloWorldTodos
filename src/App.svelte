@@ -3,6 +3,7 @@
     import '@picocss/pico'
     import TodoInput from './components/TodoInput.svelte';
     import TodoList from './components/TodoList.svelte';
+    import Toast from './lib/components/Toast.svelte';
 </script>
 
 <svelte:head>
@@ -17,6 +18,7 @@
         <li><a href="https://github.com/Rocco-Gossmann/SvelteHelloWorldTodos" target="_blank">GitHub</a></li>
     </ul>
 </nav>
+<Toast />
 
 <h1 class="text-center">Todos</h1>
 
