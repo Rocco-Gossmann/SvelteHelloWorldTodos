@@ -5,7 +5,8 @@
    
     const dropTodo = ( todo ) => {
         console.log(todo);
-        $todos = $todos.filter( (t) => t != todo );
+        if(confirm("remove todo permanently ?"))
+            $todos = $todos.filter( (t) => t != todo );
     }
 
 </script>
@@ -18,7 +19,8 @@
 
     <span class="txt">{todo.description}</span>
 
-    <button on:click|preventDefault={() => dropTodo(todo)}>DEL</button>
+    <button on:click|preventDefault={() => dropTodo(todo)} 
+        class="fa fa-trash-can" title="delete"></button>
 </article>
 {/each}
 
@@ -33,4 +35,5 @@
         text-decoration: line-through;
         color: silver;
     }
+
 </style>

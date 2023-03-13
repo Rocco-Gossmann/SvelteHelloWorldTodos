@@ -22,7 +22,7 @@
 
 <div>
     <input type="text" bind:value={todo.description} />
-    <button on:click|preventDefault={addTodo}>+ add</button>
+    <button on:click|preventDefault={addTodo} class="fa fa-circle-plus"></button>
 </div>
 
 <style>

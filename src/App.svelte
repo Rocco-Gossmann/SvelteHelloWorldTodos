@@ -1,6 +1,10 @@
 <script lang="ts">
     import './assets/main.css'
+    import './assets/vendor/fontawesome/css/all.min.css'
+    import './assets/vendor/fontawesome/svgs/solid/trash-can.svg'
+    import './assets/vendor/fontawesome/svgs/solid/circle-plus.svg'
     import '@picocss/pico'
+
     import TodoInput from './components/TodoInput.svelte';
     import TodoList from './components/TodoList.svelte';
     import Toast from './lib/components/Toast.svelte';
