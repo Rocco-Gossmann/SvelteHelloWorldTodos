@@ -87,8 +87,11 @@ if (localStorage) {
 
     if (isArray(rawTodos)) { 
         rawTodos = (rawTodos as Array<unknown>).filter(isTodo);
-        if ((rawTodos as ITodo[]).length) db.table("todos").bulkPut(rawTodos);
-        localStorage.removeItem(localStorageName);
+        if ((rawTodos as ITodo[]).length) db
+            .then(db => db.table("todos").bulkPut(rawTodos))
+            .then(() => {
+                localStorage.removeItem(localStorageName);
+            });
     }
 
 }
