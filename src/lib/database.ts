@@ -1,7 +1,15 @@
-//@ts-ignore  
-// Dexie was importent in App.svelte
-export const db = new Dexie("helloworldtodos", {})
+import '../assets/vendor/dexiejs/dexie'
 
-db.version(1).stores({
-    todos: "++id"
+export const db = new Promise<Dexie>((resolve, reject) => {
+    //@ts-ignore
+    if (window?.Dexie) {
+        //@ts-ignore => this if block litteraly checks if window.Dexie exists
+        const db = new window.Dexie("helloworldtodos", {})
+        db.version(1).stores({
+            todos: "++id"
+        })
+
+        resolve(db)
+    }
+    else reject(new Error("Dexie is not loaded in window"))
 })

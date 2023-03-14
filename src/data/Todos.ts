@@ -27,7 +27,7 @@ class TodoStore implements Readable<ITodo[]> {
         this.subs.forEach(fnc => fnc(dat))
     }
 
-    private _dat = (): Promise<ITodo[]> => db.table("todos").toArray()
+    private _dat = (): Promise<ITodo[]> => db.then( db => db.table("todos").toArray() )
 }
 
 //==============================================================================
@@ -46,12 +46,12 @@ function isTodo(obj: any): obj is ITodo {
 export const todos = new TodoStore();
 
 export async function set(todo: ITodo, updateStore = true) { 
-    await db.table("todos").put(todo)
+    await (await db).table("todos").put(todo)
     if (updateStore) await todos.refresh()
 }
 
 export async function remove(todo: ITodo, updateStore = true) { 
-    await db.table("todos").delete(todo.id);
+    await (await db).table("todos").delete(todo.id);
     if (updateStore) await todos.refresh()
 }
 
