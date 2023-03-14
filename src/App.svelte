@@ -4,6 +4,7 @@
     import './assets/vendor/fontawesome/svgs/solid/trash-can.svg'
     import './assets/vendor/fontawesome/svgs/solid/circle-plus.svg'
     import './assets/vendor/picocss/pico.min.css'
+    import './assets/vendor/dexiejs/dexie.js'
 
     import TodoInput from './components/TodoInput.svelte';
     import TodoList from './components/TodoList.svelte';
