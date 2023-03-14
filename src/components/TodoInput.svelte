@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { todos, type ITodo } from '../data/Todos';
+    import Todos, { todos, type ITodo } from '../data/Todos';
     import { toast } from '../lib/components/Toast.svelte';
 
     let todo: ITodo = {
@@ -12,8 +12,7 @@
             toast("noting to add", "alert");
         } else {
             todo.description = todo.description.trim();
-            $todos.push(todo);
-            $todos = $todos;
+            Todos.add(todo);
             todo = { description: '', done: false };
         }
     };

@@ -1,12 +1,11 @@
 <script lang="ts">
-    import { todos, type ITodo } from "../data/Todos";
+    import Todos, { todos, type ITodo } from "../data/Todos";
 
     $: displayList = [ ...$todos ].reverse();
    
     const dropTodo = ( todo ) => {
-        console.log(todo);
         if(confirm("remove todo permanently ?"))
-            $todos = $todos.filter( (t) => t != todo );
+            Todos.remove(todo);
     }
 
 </script>
@@ -15,7 +14,7 @@
 <article class:done={todo.done}>
     <span><input type="checkbox" 
         bind:checked={todo.done} 
-        on:click={() => {todo.done = !todo.done; $todos = $todos}} /></span>
+        on:click={() => {todo.done = !todo.done; todos.refresh()}} /></span>
 
     <span class="txt">{todo.description}</span>
 
