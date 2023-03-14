@@ -18,7 +18,7 @@ Help me to learn:
 ### Step 1a - Make things look good
 - ️✔ Find a better way, to send Toasts / Messages to the client (Alert Sucks)
 - ✔ add some Font Awesome Goodness
-- ⬜ Animations
+- ✔ Animations
 
 ### Step 2 - More than a Todo List
 - ⬜ Setup IndexedDB => Store Todos there

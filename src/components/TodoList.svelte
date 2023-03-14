@@ -1,17 +1,24 @@
 <script lang="ts">
+    import { slide, crossfade } from 'svelte/transition'
+    import {flip} from 'svelte/animate'
+
     import Todos, { todos, type ITodo } from "../data/Todos";
 
-    $: displayList = [ ...$todos ].reverse();
+    $: allList = [ ...$todos].reverse()
+    $: openList = allList.filter((t)=>!t.done);
+    $: doneList = allList.filter((t)=>t.done);
    
     const dropTodo = ( todo ) => {
         if(confirm("remove todo permanently ?"))
             Todos.remove(todo);
     }
 
+    const [crossSend, crossReceive] = crossfade({ fallback: slide })
+
 </script>
 
-{#each displayList as todo,i (i)}
-<article class:done={todo.done}>
+{#each openList as todo (todo.id)}
+<article class:done={todo.done} in:crossReceive|local={{key: todo.id}} out:crossSend={{key: todo.id}} animate:flip={{duration: 250}}>
     <span><input type="checkbox" 
         bind:checked={todo.done} 
         on:click={() => {todo.done = !todo.done; todos.refresh()}} /></span>
@@ -23,6 +30,19 @@
 </article>
 {/each}
 
+<h3>Done:</h3>
+{#each doneList as todo (todo.id)}
+<article class:done={todo.done}  in:crossReceive|local={{key: todo.id}} out:crossSend={{key: todo.id}}  animate:flip={{duration: 250}}>
+    <span><input type="checkbox" 
+        bind:checked={todo.done} 
+        on:click={() => {todo.done = !todo.done; todos.refresh()}} /></span>
+
+    <span class="txt">{todo.description}</span>
+
+    <button on:click|preventDefault={() => dropTodo(todo)} 
+        class="fa fa-trash-can" title="delete"></button>
+</article>
+{/each}
 <style>
     ARTICLE {
         display: grid;
