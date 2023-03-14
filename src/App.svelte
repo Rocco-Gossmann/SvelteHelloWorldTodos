@@ -3,7 +3,7 @@
     import './assets/vendor/fontawesome/css/all.min.css'
     import './assets/vendor/fontawesome/svgs/solid/trash-can.svg'
     import './assets/vendor/fontawesome/svgs/solid/circle-plus.svg'
-    import '@picocss/pico'
+    import './assets/vendor/picocss/pico.min.css'
 
     import TodoInput from './components/TodoInput.svelte';
     import TodoList from './components/TodoList.svelte';
