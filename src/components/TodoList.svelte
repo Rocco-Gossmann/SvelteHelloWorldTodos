@@ -4,8 +4,6 @@
 
     import Todos, { todos, type ITodo } from "../data/Todos";
 
-    $: console.log(JSON.stringify($todos))
-
     $: allList = [ ...$todos].reverse()
     $: openList = allList.filter((t)=>!t.done);
     $: doneList = allList.filter((t)=>t.done);
@@ -13,6 +11,11 @@
     const dropTodo = ( todo ) => {
         if(confirm("remove todo permanently ?"))
             Todos.remove(todo);
+    }
+
+    const toggleDone = async (todo: ITodo) => {
+        todo.done = !todo.done; 
+        Todos.set(todo)
     }
 
     const [crossSend, crossReceive] = crossfade({ fallback: slide })
@@ -23,7 +26,7 @@
 <article class:done={todo.done} in:crossReceive|local={{key: todo.id}} out:crossSend={{key: todo.id}} animate:flip={{duration: 250}}>
     <span><input type="checkbox" 
         bind:checked={todo.done} 
-        on:click={() => {todo.done = !todo.done; Todos.set(todo)}} /></span>
+        on:click={() => toggleDone(todo)} /></span>
 
     <span class="txt">{todo.description}</span>
 
@@ -37,7 +40,7 @@
 <article class:done={todo.done}  in:crossReceive|local={{key: todo.id}} out:crossSend={{key: todo.id}}  animate:flip={{duration: 250}}>
     <span><input type="checkbox" 
         bind:checked={todo.done} 
-        on:click={() => {todo.done = !todo.done; todos.refresh()}} /></span>
+        on:click={() => toggleDone(todo)} /></span>
 
     <span class="txt">{todo.description}</span>
 
