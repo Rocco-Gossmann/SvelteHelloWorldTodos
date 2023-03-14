@@ -21,7 +21,7 @@ Help me to learn:
 - ✔ Animations
 
 ### Step 2 - More than a Todo List
-- ⬜ Setup IndexedDB => Store Todos there
+- ✔ Setup IndexedDB => Store Todos there
 - ⬜ add Tags
   - ⬜ assign/remove tags to todos
   - ⬜ filter todo list by tag

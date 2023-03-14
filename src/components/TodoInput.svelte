@@ -12,7 +12,7 @@
             toast("noting to add", "alert");
         } else {
             todo.description = todo.description.trim();
-            Todos.add(todo);
+            Todos.set(todo);
             todo = { description: '', done: false };
         }
     };

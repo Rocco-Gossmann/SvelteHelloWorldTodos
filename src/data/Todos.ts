@@ -1,5 +1,6 @@
 import type { Readable, Subscriber, Unsubscriber } from 'svelte/store'
 import { isArray, isObject } from '../lib/utils'
+import { db } from '../lib/database'
 
 //==============================================================================
 // Interfaces
@@ -15,27 +16,23 @@ class TodoStore implements Readable<ITodo[]> {
     private subs: Set<Subscriber<ITodo[]>> = new Set();
 
     subscribe = (run: Subscriber<ITodo[]>): Unsubscriber => {
-        run(this._dat());
+        run([]);
+        (async () => run((await this._dat()) || []))()
         this.subs.add(run);
         return () => { this.subs.delete(run) }
     }
 
-    refresh() {
-        const dat = this._dat()
+    async refresh() {
+        const dat = (await this._dat()) || []
         this.subs.forEach(fnc => fnc(dat))
     }
 
-    private _dat(): ITodo[] {
-        return Array.from(aTodos.values());
-    }
+    private _dat = (): Promise<ITodo[]> => db.table("todos").toArray()
 }
 
 //==============================================================================
 // Module Functions
 //==============================================================================
-const localStorageName = "rawTodos";
-const aTodos: Map<number, ITodo> = new Map(); 
-let autoIncrement = 0;
 
 function isTodo(obj: any): obj is ITodo {
     return isObject(obj)
@@ -48,26 +45,26 @@ function isTodo(obj: any): obj is ITodo {
 //==============================================================================
 export const todos = new TodoStore();
 
-export function add(todo: ITodo, updateStore = true) { 
-    if (!todo.id) todo.id = ++autoIncrement;
-    aTodos.set(todo.id, todo);
-
-    if (updateStore) todos.refresh()
+export async function set(todo: ITodo, updateStore = true) { 
+    await db.table("todos").put(todo)
+    if (updateStore) await todos.refresh()
 }
 
-export function remove(todo: ITodo, updateStore = true) { 
-    aTodos.delete(todo.id);
-    if (updateStore) todos.refresh()
+export async function remove(todo: ITodo, updateStore = true) { 
+    await db.table("todos").delete(todo.id);
+    if (updateStore) await todos.refresh()
 }
+
 
 interface ITodosModule {
     todos: TodoStore
 
-    add: (todo: ITodo) => void; 
+    set: (todo: ITodo) => Promise<void>; 
 
-    remove: (todo: ITodo) => void
+    remove: (todo: ITodo) => Promise<void>
+
 }
-export const Todos: ITodosModule = { todos, add, remove }
+export const Todos: ITodosModule = { todos, set, remove }
 export default Todos
 
 
@@ -75,7 +72,12 @@ export default Todos
 //==============================================================================
 // Module Exports Setup
 //==============================================================================
+// Migrate older LocalStorage to IndexedDB
 if (localStorage) {
+
+    const localStorageName = "rawTodos";
+
+    // Transfere Todos From LocalStorage to IndexedDB
     let rawTodos: unknown
     try { rawTodos = JSON.parse(localStorage.getItem(localStorageName)) }
     catch (err) { 
@@ -84,23 +86,11 @@ if (localStorage) {
     }
 
     if (isArray(rawTodos)) { 
-        rawTodos = (rawTodos as Array<unknown>).filter((todo: unknown) => {
-            if (!isTodo(todo)) return false
-            if (todo.id) {
-                if (typeof (todo?.id) === 'number') {
-                    autoIncrement = Math.max(autoIncrement, todo.id)
-                }
-                else delete todo.id
-
-            }
-            return true;
-        });
-
-
-        (rawTodos as ITodo[]).forEach( t => add(t, false) )
+        rawTodos = (rawTodos as Array<unknown>).filter(isTodo);
+        if ((rawTodos as ITodo[]).length) db.table("todos").bulkPut(rawTodos);
+        localStorage.removeItem(localStorageName);
     }
 
-    todos.subscribe((todos: ITodo[]) => localStorage.setItem(localStorageName, JSON.stringify(todos)))
 }
 
 

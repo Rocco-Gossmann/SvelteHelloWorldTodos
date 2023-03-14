@@ -4,6 +4,8 @@
 
     import Todos, { todos, type ITodo } from "../data/Todos";
 
+    $: console.log(JSON.stringify($todos))
+
     $: allList = [ ...$todos].reverse()
     $: openList = allList.filter((t)=>!t.done);
     $: doneList = allList.filter((t)=>t.done);
@@ -21,7 +23,7 @@
 <article class:done={todo.done} in:crossReceive|local={{key: todo.id}} out:crossSend={{key: todo.id}} animate:flip={{duration: 250}}>
     <span><input type="checkbox" 
         bind:checked={todo.done} 
-        on:click={() => {todo.done = !todo.done; todos.refresh()}} /></span>
+        on:click={() => {todo.done = !todo.done; Todos.set(todo)}} /></span>
 
     <span class="txt">{todo.description}</span>
 
