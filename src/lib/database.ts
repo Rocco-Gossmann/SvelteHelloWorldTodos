@@ -3,8 +3,9 @@ export const db = new Promise<Dexie>((resolve, reject) => {
     if (window?.Dexie) {
         //@ts-ignore => this if block litteraly checks if window.Dexie exists
         const db = new window.Dexie("helloworldtodos", {})
-        db.version(1).stores({
-            todos: "++id"
+        db.version(2).stores({
+            tags: "&key",
+            todos: "++id,*tags",
         })
 
         resolve(db)

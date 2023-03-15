@@ -22,9 +22,12 @@ Help me to learn:
 
 ### Step 2 - More than a Todo List
 - ✔ Setup IndexedDB => Store Todos there
-- ⬜ add Tags
-  - ⬜ assign/remove tags to todos
-  - ⬜ filter todo list by tag
+- ✔ add Tags
+  - ✔ assign tags 
+  - ✔ filter todo list by tag
+  - ⬜ remove tags from todos
+  - ⬜ remove tags from app
+
 
 ### Step 3 - Security and Portability
 - ⬜ Figure out Encryption via WebCrypto-API

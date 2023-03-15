@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TagInput from './components/TagInput.svelte';
     import './assets/main.css'
     import './assets/vendor/fontawesome/css/all.min.css'
     import './assets/vendor/fontawesome/svgs/solid/trash-can.svg'
@@ -23,6 +24,8 @@
     </ul>
 </nav>
 <Toast />
+
+<TagInput />
 
 <h1 class="text-center">Todos</h1>
 

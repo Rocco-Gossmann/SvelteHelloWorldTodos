@@ -4,7 +4,7 @@
 
     import Todos, { todos, type ITodo } from "../data/Todos";
 
-    $: allList = [ ...$todos].reverse()
+    $: allList = [ ...$todos]
     $: openList = allList.filter((t)=>!t.done);
     $: doneList = allList.filter((t)=>t.done);
    

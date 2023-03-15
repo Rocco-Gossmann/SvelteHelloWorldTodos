@@ -9,16 +9,18 @@ export interface ITodo {
     id?: number
     description: string
     done: boolean
+    tags?: string[]
 }
 
-class TodoStore implements Readable<ITodo[]> { 
+
+class TodoStore implements Readable<ITodo[]> {
 
     private subs: Set<Subscriber<ITodo[]>> = new Set();
 
     subscribe = (run: Subscriber<ITodo[]>): Unsubscriber => {
         run([]);
         (async () => run((await this._dat()) || []))()
-        this.subs.add(run);
+        this.subs.add(run)
         return () => { this.subs.delete(run) }
     }
 
@@ -27,7 +29,19 @@ class TodoStore implements Readable<ITodo[]> {
         this.subs.forEach(fnc => fnc(dat))
     }
 
-    private _dat = (): Promise<ITodo[]> => db.then( db => db.table("todos").toArray() )
+    private _dat = (): Promise<ITodo[]> => db.then(db => {
+        if (tagFilter.length) {
+            return db.todos.where("tags").anyOf(tagFilter).distinct().filter((todo) => {
+                const ret = tagFilter
+                    .reduce((ok, e, i) => ok && todo.tags.indexOf(e) != -1, true)
+
+                console.log("ret", ret)
+                return ret;
+            }).toArray()
+
+                return        }
+        else return db.todos.toArray();
+    })
 }
 
 //==============================================================================
@@ -44,6 +58,7 @@ function isTodo(obj: any): obj is ITodo {
 // Module Exports
 //==============================================================================
 export const todos = new TodoStore();
+let tagFilter = [];
 
 export async function set(todo: ITodo, updateStore = true) { 
     await (await db).table("todos").put(todo)
@@ -55,6 +70,11 @@ export async function remove(todo: ITodo, updateStore = true) {
     if (updateStore) await todos.refresh()
 }
 
+export async function filter(tags: string[], updateStore = true) {
+    tagFilter = tags
+    if (updateStore) await todos.refresh()
+}
+
 
 interface ITodosModule {
     todos: TodoStore
@@ -63,8 +83,9 @@ interface ITodosModule {
 
     remove: (todo: ITodo) => Promise<void>
 
+    filter: (tags: string[]) => void
 }
-export const Todos: ITodosModule = { todos, set, remove }
+export const Todos: ITodosModule = { todos, set, remove, filter }
 export default Todos
 
 

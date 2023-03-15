@@ -1,11 +1,16 @@
 <script lang="ts">
     import Todos, { todos, type ITodo } from '../data/Todos';
     import { toast } from '../lib/components/Toast.svelte';
+    import { tagfilter } from './TagInput.svelte';
 
     let todo: ITodo = {
         description: '',
         done: false,
+        tags: []
     };
+    
+
+    $: todo.tags = [ ...$tagfilter ];
 
     const addTodo = () => {
         if (todo.description.trim() == '') {
@@ -13,7 +18,7 @@
         } else {
             todo.description = todo.description.trim();
             Todos.set(todo);
-            todo = { description: '', done: false };
+            todo = { description: '', done: false, tags: todo.tags };
         }
     };
 
