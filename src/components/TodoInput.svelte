@@ -20,8 +20,10 @@
 </script>
 
 <div>
-    <input type="text" bind:value={todo.description} />
-    <button on:click|preventDefault={addTodo} class="fa fa-circle-plus"></button>
+    <form on:submit|preventDefault={addTodo}>
+        <input tabindex="0" type="text" bind:value={todo.description} />
+        <button type="submit" class="fa fa-circle-plus"></button>
+    </form>
 </div>
 
 <style>
@@ -29,7 +31,7 @@
         white-space: nowrap;
     }
 
-    DIV {
+    FORM {
         display: grid;
         grid-gap: var(--spacing);
         grid-template-columns: 1fr 0fr 0fr;
