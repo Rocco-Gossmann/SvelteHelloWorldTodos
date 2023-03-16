@@ -1,3 +1,5 @@
+import '../assets/vendor/dexiejs/dexie';
+
 export const db = new Promise<Dexie>((resolve, reject) => {
     //@ts-ignore
     if (window?.Dexie) {
