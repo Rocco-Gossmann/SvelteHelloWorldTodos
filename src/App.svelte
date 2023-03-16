@@ -1,11 +1,9 @@
 <script lang="ts">
-	import TagInput from './components/TagInput.svelte';
     import './assets/main.css'
-    import './assets/vendor/fontawesome/css/all.min.css'
-    import './assets/vendor/fontawesome/svgs/solid/trash-can.svg'
-    import './assets/vendor/fontawesome/svgs/solid/circle-plus.svg'
     import './assets/vendor/picocss/pico.min.css'
+    import './assets/vendor/dexiejs/dexie.js'
 
+	import TagInput from './components/TagInput.svelte';
     import TodoInput from './components/TodoInput.svelte';
     import TodoList from './components/TodoList.svelte';
     import Toast from './lib/components/Toast.svelte';
