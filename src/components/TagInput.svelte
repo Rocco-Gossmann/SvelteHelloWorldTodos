@@ -69,7 +69,7 @@
     import Todos from '../data/Todos';
     import { toast } from '../lib/components/Toast.svelte';
 
-    let visible = $tagfilter.length > 0;
+    $: visible = $tagfilter.length > 0;
 
     let tagInput = "";
 
@@ -83,13 +83,7 @@
         }
 
         if(oTag) {
-            $tagfilter.push(oTag.key);
-            $tagDisplay.push(oTag.value);
-
-            $tagfilter = $tagfilter;
-            $tagDisplay = $tagDisplay;
-
-            Todos.filter($tagfilter);
+            addTag(oTag)
             tagInput = "";
         }
         else toast("could not add tag", "error", 3000);
