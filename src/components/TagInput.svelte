@@ -6,8 +6,25 @@
     export const tagfilter = writable<string[]>([]);
     export const tagDisplay = writable<string[]>([]);
 
+    export function addTag(tag: ITag) {
+        tagfilter.update( lst => {
+            if(lst.indexOf(tag.key) == -1) {
+                lst.push(tag.key);
+                Todos.filter(lst);
+            }
+            return lst;
+        });
+
+        tagDisplay.update( lst => {
+            if(lst.indexOf(tag.value) == -1)
+                lst.push(tag.value);
+            return lst;
+        });
+    }
+
     try {
         let filter = localStorage.getItem("tagfilter");
+        let lastlist = [];
         if(filter) filter = JSON.parse(filter);
         if(isArray(filter)) {
             tagfilter.set(filter);
@@ -23,7 +40,8 @@
                     )
                 );
 
-                clearTags.forEach((t) => tagfilter.update( list => list.filter( t1 => t1 != t)))
+                clearTags.forEach((t) => tagfilter.update( list => lastlist = list.filter( t1 => t1 != t)))
+
 
                 if(isArray(tags)) {
                     tags = tags.filter(t=>typeof(t) !== 'undefined');
@@ -37,9 +55,9 @@
     }
     catch( err ) { /* NOP */ }
 
-
     tagfilter.subscribe ( (lst) => {
         localStorage.setItem("tagfilter", JSON.stringify(lst));
+        Todos.filter(lst);
     })
 
 </script>
@@ -59,7 +77,7 @@
 
         let oTag: ITag|void;
         try {
-            oTag = await Tags.findByValue(tagInput); 
+           oTag = await Tags.findByValue(tagInput); 
         } catch( err ) {
             oTag = await Tags.insert(tagInput);
         }
@@ -84,7 +102,7 @@
         const oTag: ITag = await Tags.findByValue(tag);
         if(oTag) {
             $tagfilter = $tagfilter.filter( (t) => t != oTag.key );
-            $tagDisplay = $tagfilter.filter( (t) => t != oTag.value );
+            $tagDisplay = $tagDisplay.filter( (t) => t != oTag.value );
         }
 
         Todos.filter($tagfilter);

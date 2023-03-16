@@ -22,12 +22,15 @@ function getKey(value: string) {
     return value.trim().toLowerCase();
 }
 
-function findByValue(value: string): Promise<ITag> { 
-    const key = getKey(value)
+function findByKey(key: string): Promise<ITag> { 
     return db.then(db => db.tags.where("key").equals(key).first()).then(e => { 
-        if (!e) throw new Error("no tag for value " + value)
+        if (!e) throw new Error("no tag for value " + key)
         else return e;
     });
+}
+
+function findByValue(value: string): Promise<ITag> { 
+    return findByKey(getKey(value));
 }
 
 async function drop(value: string) {
@@ -56,9 +59,11 @@ interface ITagsModule {
     getKey: (tag: string) => string
 
     findByValue: (tag: string) => Promise<ITag>
+
+    findByKey: (tag: string) => Promise<ITag>
 }
 
 
-export const Tags: ITagsModule = { getKey, findByValue, insert, drop }
+export const Tags: ITagsModule = { getKey, insert, drop, findByKey, findByValue  }
 
 export default Tags
