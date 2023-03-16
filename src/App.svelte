@@ -1,7 +1,5 @@
 <script lang="ts">
     import './assets/main.css'
-    import './assets/vendor/picocss/pico.min.css'
-    import './assets/vendor/dexiejs/dexie.js'
 
 	import TagInput from './components/TagInput.svelte';
     import TodoInput from './components/TodoInput.svelte';
