@@ -1,5 +1,4 @@
 <script context="module" lang="ts">
-	import Vault from './../assets/vendor/fontawesome/svgs/solid/vault.svg';
     import { isArray } from '../lib/utils';
     import { writable } from 'svelte/store';
 
@@ -21,6 +20,7 @@
             return lst;
         });
     }
+
 
     try {
         let filter = localStorage.getItem("tagfilter");
@@ -73,7 +73,7 @@
 
     let tagInput = "";
 
-    const addTag = async () => {
+    const onAddTag = async () => {
 
         let oTag: ITag|void;
         try {
@@ -93,19 +93,23 @@
             tagInput = "";
         }
         else toast("could not add tag", "error", 3000);
+
     }
 
     const removeTag = async (tag) => {
 
-        $tagDisplay = $tagfilter.filter( (t) => t != tag );
+        try {
+            const oTag: ITag = await Tags.findByValue(tag);
 
-        const oTag: ITag = await Tags.findByValue(tag);
-        if(oTag) {
             $tagfilter = $tagfilter.filter( (t) => t != oTag.key );
             $tagDisplay = $tagDisplay.filter( (t) => t != oTag.value );
-        }
 
-        Todos.filter($tagfilter);
+            Todos.filter($tagfilter);
+        }
+        catch( err ) { 
+            console.error(err); 
+            toast("error see console", "error", 3000);
+        }
     }
 
 
@@ -115,14 +119,14 @@
 <a role="button" href={"#"} on:click|preventDefault={() => visible = !visible }>Tags</a>
 
 {#if visible}
-<form class="taginput" class:open={visible} transition:slide|local on:submit|preventDefault={addTag}>
+<form class="taginput" class:open={visible} transition:slide|local on:submit|preventDefault={onAddTag}>
     <input type="text" bind:value={tagInput} />
     <button type="submit" class="fa fa-plus-circle"></button>
 </form>
 
 <section class="taglist" class:open={visible} transition:slide|local>
 
-{#if $tagfilter.length}
+{#if $tagDisplay.length}
 
     {#each $tagDisplay as tag}
         <Tag 
@@ -141,7 +145,6 @@
 
 
 <style>
-
     A[role=button] {
         white-space: nowrap;
         width: auto;

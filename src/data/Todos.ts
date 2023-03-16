@@ -35,7 +35,6 @@ class TodoStore implements Readable<ITodo[]> {
                 const ret = tagFilter
                     .reduce((ok, e, i) => ok && todo.tags.indexOf(e) != -1, true)
 
-                console.log("ret", ret)
                 return ret;
             }).toArray()
 
