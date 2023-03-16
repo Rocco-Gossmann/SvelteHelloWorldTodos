@@ -1,5 +1,10 @@
 import '../assets/vendor/dexiejs/dexie';
 
+//if (Dexie) { 
+//    console.log("Dexie exists", Dexie)
+//    window.Dexie = Dexie
+//}
+
 export const db = new Promise<Dexie>((resolve, reject) => {
     //@ts-ignore
     if (window?.Dexie) {
