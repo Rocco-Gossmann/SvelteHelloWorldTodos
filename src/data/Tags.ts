@@ -1,30 +1,48 @@
 import { db } from "../lib/database"
+export class TagsError extends Error { 
+    static readonly EMPTY_TAG_KEY = "the given value resulted in an empty tag-key";
 
-export interface ITag {
-    /* Normalized version of value (trimmed and strtolowered) */
-    key: string 
-    /* Visible value, as entered by the User */
-    value: string
+    static readonly NO_TAG_FOR_KEY = "a tag for the given Key or Value does not exist in the Database";
+
 }
 
-async function table() { return (await db).tags }
+export class ITag { 
+    public key: string;
 
-async function insert(value: string) {
-    const key = getKey(value);
-    const oTag: ITag = { key, value };
+    /**
+     * @param value  the visible representation of the tag
+     */
+    constructor(
+        public value: string
+    ) {
+        this.key = getKey(value);
+        if (this.key == "") throw new TagsError(TagsError.EMPTY_TAG_KEY);
+    }
 
-    (await table()).put(oTag);
+    async drop(): Promise<void> { 
 
-    return oTag
+        const _db = await db;
+        const oTag = await _db.tags(this.key).first();
+
+        if(oTag)
+            await _db.tags.delete(this.key);
+
+        await _db.todos.where("tags").equals(this.key).each((e) =>{ 
+            e.tags = e.tags.filter(t => t != this.key); 
+            return _db.todos.put(e);
+        });
+
+    }
+
+    insert(): Promise<void> {
+        return table().then(tab => tab.put(this));
+    }
 }
 
-function getKey(value: string) { 
-    return value.trim().toLowerCase();
-}
 
 function findByKey(key: string): Promise<ITag> { 
     return db.then(db => db.tags.where("key").equals(key).first()).then(e => { 
-        if (!e) throw new Error("no tag for value " + key)
+        if (!e) throw new TagsError(TagsError.NO_TAG_FOR_KEY)
         else return e;
     });
 }
@@ -33,37 +51,27 @@ function findByValue(value: string): Promise<ITag> {
     return findByKey(getKey(value));
 }
 
-async function drop(value: string) {
-    const key = getKey(value);
-    const _db = await db;
-
-    const oTag = await _db.tags(key).first();
-
-    if(oTag)
-        await _db.tags.delete(key);
-
-    await _db.todos.where("tags").equals(key).each((e) =>{ 
-        e.tags = e.tags.filter(t => t != key); 
-        return _db.todos.put(e);
-    });
-
-    return oTag
-}
-
 //==============================================================================
 // Module Exports
 //==============================================================================
 interface ITagsModule {
-    insert: (tag: string) => Promise<ITag|void>
-    drop: (tag: string) => Promise<ITag|void>
-    getKey: (tag: string) => string
-
     findByValue: (tag: string) => Promise<ITag>
 
     findByKey: (tag: string) => Promise<ITag>
 }
 
 
-export const Tags: ITagsModule = { getKey, insert, drop, findByKey, findByValue  }
+export const Tags: ITagsModule = { findByKey, findByValue  }
 
 export default Tags
+
+
+
+
+
+//==============================================================================
+// Helpers
+//==============================================================================
+async function table() { return (await db).tags }
+
+function getKey(value: string) { return value.trim().toLowerCase(); }

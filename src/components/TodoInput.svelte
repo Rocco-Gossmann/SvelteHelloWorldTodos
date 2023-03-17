@@ -14,7 +14,7 @@
 
     const addTodo = () => {
         if (todo.description.trim() == '') {
-            toast("noting to add", "alert");
+            toast("noting to add", "alert", 2);
         } else {
             todo.description = todo.description.trim();
             Todos.set(todo);

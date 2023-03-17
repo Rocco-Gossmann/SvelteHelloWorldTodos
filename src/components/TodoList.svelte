@@ -28,7 +28,7 @@
             addTag(oTag);
         }
         catch( err ) {
-            toast("cant add tag (See Console)", "error", 3000);
+            toast("cant add tag (See Console)", "alert", 2);
         }
     }
 

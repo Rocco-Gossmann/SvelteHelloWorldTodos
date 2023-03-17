@@ -9,7 +9,6 @@
         tagfilter.update( lst => {
             if(lst.indexOf(tag.key) == -1) {
                 lst.push(tag.key);
-                Todos.filter(lst);
             }
             return lst;
         });
@@ -65,7 +64,7 @@
 <script lang="ts">
     import { slide } from 'svelte/transition'
     import Tag from './Tag.svelte';
-    import Tags, { type ITag } from '../data/Tags'
+    import Tags, { ITag, TagsError } from '../data/Tags'
     import Todos from '../data/Todos';
     import { toast } from '../lib/components/Toast.svelte';
 
@@ -75,19 +74,22 @@
 
     const onAddTag = async () => {
 
-        let oTag: ITag|void;
+        let oTag: ITag;
+
         try {
-           oTag = await Tags.findByValue(tagInput); 
-        } catch( err ) {
-            oTag = await Tags.insert(tagInput);
-        }
-
-        if(oTag) {
-            addTag(oTag)
+            oTag = new ITag(tagInput);
+            await oTag.insert();
+            addTag(oTag);
             tagInput = "";
+        } catch( err ) {
+            if(err instanceof TagsError && err.message == TagsError.EMPTY_TAG_KEY) {
+                toast("cant add empty tag", "alert", 3);             
+            }
+            else {
+                console.error(err);
+                toast("ERROR: see console", "alert", 2);             
+            }
         }
-        else toast("could not add tag", "error", 3000);
-
     }
 
     const removeTag = async (tag) => {
@@ -102,7 +104,7 @@
         }
         catch( err ) { 
             console.error(err); 
-            toast("error see console", "error", 3000);
+            toast("error see console", "alert", 2);
         }
     }
 

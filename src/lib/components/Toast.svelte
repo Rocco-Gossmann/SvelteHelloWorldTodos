@@ -11,7 +11,7 @@
     const toasts: Writable<IToast[]> = writable([]);
 
     export function toast(msg, cssClass, timeout=4) {
-        toasts.update( (t) => { t.push({ id: id++, msg, cssClass, timeout }); return t } )
+        toasts.update( (t) => { t.push({ id: id++, msg, cssClass, timeout: timeout*10 }); return t } )
     }
 
 </script>
@@ -30,7 +30,7 @@
                 $toasts = $toasts.filter( t => t.timeout > 0)
                 currentTo = undefined;
                 syncToasts();
-            }, 1000);
+            }, 100);
         }
     }
 
