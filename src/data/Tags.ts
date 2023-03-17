@@ -1,67 +1,113 @@
+import type { Readable, Subscriber, Unsubscriber } from "svelte/store"
 import { db } from "../lib/database"
-export class TagsError extends Error { 
+export class TagsError extends Error {
     static readonly EMPTY_TAG_KEY = "the given value resulted in an empty tag-key";
 
     static readonly NO_TAG_FOR_KEY = "a tag for the given Key or Value does not exist in the Database";
 
+    static readonly INVALID_CONSTRUCT = "construct must be provided with either 'key' or 'value'";
 }
 
-export class ITag { 
-    public key: string;
+export class ITag {
+    public key: string
+    public value: string
 
-    /**
-     * @param value  the visible representation of the tag
-     */
     constructor(
-        public value: string
+        payload: Partial<ITag>
     ) {
-        this.key = getKey(value);
-        if (this.key == "") throw new TagsError(TagsError.EMPTY_TAG_KEY);
+        if (payload.value && payload.key) {
+            this.value = payload.value
+            this.key = getKey(payload.key)
+        }
+        else if (payload.key) {
+            this.value = payload.key
+            this.key = getKey(payload.key)
+        }
+        else if (payload.value) {
+            this.value = payload.value
+            this.key = getKey(payload.value)
+        }
+        else throw new TagsError(TagsError.INVALID_CONSTRUCT)
+
+        if (this.key == "") throw new TagsError(TagsError.EMPTY_TAG_KEY)
     }
 
-    async drop(): Promise<void> { 
+    async drop(): Promise<void> {
 
-        const _db = await db;
-        const oTag = await _db.tags(this.key).first();
+        const _db = await db
+        const oTag = await _db.tags(this.key).first()
 
-        if(oTag)
-            await _db.tags.delete(this.key);
+        if (oTag)
+            await _db.tags.delete(this.key)
 
-        await _db.todos.where("tags").equals(this.key).each((e) =>{ 
-            e.tags = e.tags.filter(t => t != this.key); 
-            return _db.todos.put(e);
-        });
+        await _db.todos.where("tags").equals(this.key).each((e) => {
+            e.tags = e.tags.filter(t => t != this.key)
+            return _db.todos.put(e)
+        })
 
     }
 
     insert(): Promise<void> {
-        return table().then(tab => tab.put(this));
+        return table().then(tab => tab.put(this))
     }
 }
 
-
-function findByKey(key: string): Promise<ITag> { 
-    return db.then(db => db.tags.where("key").equals(key).first()).then(e => { 
+function findByKey(key: string): Promise<ITag> {
+    return db.then(db => db.tags.where("key").equals(key).first()).then(e => {
         if (!e) throw new TagsError(TagsError.NO_TAG_FOR_KEY)
-        else return e;
-    });
+        else return e
+    })
 }
 
-function findByValue(value: string): Promise<ITag> { 
-    return findByKey(getKey(value));
+function findByValue(value: string): Promise<ITag> {
+    return findByKey(getKey(value))
 }
+
+class TagStore implements Readable<ITag[]> {
+    private subs: Set<Subscriber<ITag[]>> = new Set();
+
+    subscribe(run: Subscriber<ITag[]>): Unsubscriber {
+        console.log("new sub", run)
+        this.subs.add(run)
+        run([])
+
+        this._dat().then(run)
+
+        return () => {
+            console.log("unsub", run)
+            this.subs.delete(run)
+        }
+    }
+
+    async refresh(): Promise<void> {
+        const dat = await this._dat()
+        this.subs.forEach(s => s(dat))
+    }
+
+    private _dat(): Promise<ITag[]> {
+        return table()
+            .then( tab => tab.toArray() )
+            .then( arr => arr.map((obj: Object) => new ITag(obj)))
+        
+    }
+
+}
+
 
 //==============================================================================
 // Module Exports
 //==============================================================================
 interface ITagsModule {
+    tagstore: TagStore,
+
     findByValue: (tag: string) => Promise<ITag>
 
     findByKey: (tag: string) => Promise<ITag>
 }
 
+export const tagstore = new TagStore()
 
-export const Tags: ITagsModule = { findByKey, findByValue  }
+export const Tags: ITagsModule = { tagstore, findByKey, findByValue }
 
 export default Tags
 
@@ -74,4 +120,4 @@ export default Tags
 //==============================================================================
 async function table() { return (await db).tags }
 
-function getKey(value: string) { return value.trim().toLowerCase(); }
+function getKey(value: string) { return value.trim().toLowerCase() }

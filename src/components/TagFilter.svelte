@@ -66,12 +66,15 @@
         let oTag: ITag;
 
         try {
-            oTag = new ITag(tagInput);
+            oTag = new ITag({value: tagInput});
             await oTag.insert();
             addTag(oTag);
             tagInput = "";
         } catch( err ) {
-            if(err instanceof TagsError && err.message == TagsError.EMPTY_TAG_KEY) {
+            if(err instanceof TagsError && (
+                err.message == TagsError.EMPTY_TAG_KEY
+                || err.message == TagsError.INVALID_CONSTRUCT
+            )) {
                 toast("cant add empty tag", "alert", 3);             
             }
             else {
