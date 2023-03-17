@@ -162,4 +162,18 @@
         display: block;
     }
 
+    SECTION.taglist :global(SPAN.tag) {
+        display: inline-block;
+        margin: var(--spacing);
+        background-color: var(--muted-color);
+        padding: var(--nav-link-spacing-vertical) var(--nav-link-spacing-horizontal);
+        border-radius: var(--border-radius);
+        color: white;
+    }
+
+    SECTION.taglist :global(SPAN.tag > A) {
+        color: white;
+        margin-left: var(--spacing);
+    }
+
 </style>

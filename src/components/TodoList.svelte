@@ -5,7 +5,8 @@
     import Todos, { todos, type ITodo } from "../data/Todos";
     import { addTag } from './TagInput.svelte';
     import { toast } from '../lib/components/Toast.svelte';
-    import { Tags, type ITag } from '../data/Tags';
+    import Tag from './Tag.svelte';
+    import type { ITag } from '../data/Tags';
 
     $: allList = [ ...$todos]
     $: openList = allList.filter((t)=>!t.done);
@@ -21,12 +22,8 @@
         Todos.set(todo)
     }
 
-    const onTagClick = async (tag: string) => {
-        let oTag: ITag;
-        try {
-            oTag = await Tags.findByKey(tag); 
-            addTag(oTag);
-        }
+    const onTagClick = async (tag: ITag) => {
+        try { addTag(tag); }
         catch( err ) {
             toast("cant add tag (See Console)", "alert", 2);
         }
@@ -49,7 +46,7 @@
 
     <ul>
         {#each todo.tags as tag}
-        <li><a role="button" href={"#"} on:click|preventDefault={() => onTagClick(tag)}> {tag}</a></li>
+        <li><Tag key={tag} on:click={(ev) => onTagClick(ev.detail)} /></li>
         {/each}
     </ul>
 </article>

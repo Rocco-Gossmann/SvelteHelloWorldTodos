@@ -1,32 +1,31 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
+    import Tags, { ITag } from "../data/Tags";
 
     export let value = "";
+    export let key = "";
+
+    let oTag: ITag|void;
+
+    $: if(key) {
+        try {
+            Tags.findByKey(key).then( t => oTag = t );
+        } catch( err ) { console.error( err ); oTag = undefined; }
+    }
+    else if( value ) {
+        try {
+            Tags.findByValue(value).then( t => oTag = t );
+        } catch( err ) { console.error( err ); oTag = undefined; }
+    }
 
     const on = createEventDispatcher()
 
 </script>
 
- <span>
-    {value}
-    <a href={'#'} class="fa fa-times" on:click|preventDefault={() => on("remove")}>&nbsp;</a>
+{#if oTag}
+ <span class="tag">
+    <a href={'#'} on:click|preventDefault={() => on("click", oTag)}>{oTag.value}</a>
+    <a href={'#'} class="fa fa-times" 
+        on:click|preventDefault={() => on("remove")}>&nbsp;</a>
  </span>
-
-
- <style>
-    SPAN {
-        display: inline-block;
-        margin: var(--spacing);
-        background-color: var(--muted-color);
-        padding: var(--nav-link-spacing-vertical) var(--nav-link-spacing-horizontal);
-        border-radius: var(--border-radius);
-        color: white;
-    }
-
-    SPAN > A {
-        color: white;
-        margin-left: var(--spacing);
-    }
-
-
- </style>
+ {/if}
