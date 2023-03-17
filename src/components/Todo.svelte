@@ -1,7 +1,7 @@
 <script lang="ts">    
     import { slide } from "svelte/transition";
     import Todos, { type ITodo } from "../data/Todos";
-    import { Tags, type ITag } from '../data/Tags';
+    import type { ITag } from '../data/Tags';
 
     import Tag from './Tag.svelte';
     import { addTag } from './TagFilter.svelte';
@@ -74,13 +74,15 @@
         {/each}
     </ul>
 
-    <button on:click|preventDefault={() => showTagInput = !showTagInput} 
-        class="fa fa-tag" title="new Tag"></button>
+    {#if !todo.done}
+        <button on:click|preventDefault={() => showTagInput = !showTagInput} 
+            class="fa fa-tag" title="new Tag"></button>
 
-    {#if showTagInput}
-        <div class="taginput">
-            <TagInput on:submit={onTagAdd}/>
-        </div>
+        {#if showTagInput}
+            <div class="taginput">
+                <TagInput on:submit={onTagAdd}/>
+            </div>
+        {/if}
     {/if}
 
 </article>
