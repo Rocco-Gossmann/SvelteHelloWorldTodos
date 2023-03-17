@@ -66,7 +66,7 @@
 
     <ul>
         {#each todo.tags as tag}
-        <li>{tag}</li>
+        <li><Tag key={tag} on:click={(ev) => onTagClick(ev.detail)} noremove /></li>
         {/each}
     </ul>
 </article>
@@ -92,11 +92,6 @@
     UL LI {
         display: inline-block;
         margin: calc(var(--block-spacing-vertical) / 4) var(--block-spacing-horizontal);
-    }
-
-    UL LI A {
-        background-color: var(--muted-color);
-        padding: calc(var(--spacing) / 4) var(--block-spacing-horizontal);
     }
 
 </style>

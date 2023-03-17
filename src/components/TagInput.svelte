@@ -118,7 +118,7 @@
 {#if $tagDisplay.length}
 
     {#each $tagDisplay as tag}
-        <Tag 
+        <Tag noclick
             value={tag} 
             on:remove={ (ev) => removeTag(ev.detail) } 
             />

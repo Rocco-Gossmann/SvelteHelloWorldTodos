@@ -5,6 +5,9 @@
     export let value = "";
     export let key = "";
 
+    export let noremove = false;
+    export let noclick = false;
+
     let oTag: ITag|void;
 
     $: if(key) {
@@ -24,8 +27,14 @@
 
 {#if oTag}
  <span class="tag">
-    <a href={'#'} on:click|preventDefault={() => on("click", oTag)}>{oTag.value}</a>
+    {#if noclick}
+        {oTag.value}
+    {:else}
+        <a href={'#'} on:click|preventDefault={() => on("click", oTag)}>{oTag.value}</a>
+    {/if}
+    {#if !noremove}
     <a href={'#'} class="fa fa-times" 
         on:click|preventDefault={() => on("remove", oTag)}>&nbsp;</a>
+    {/if}
  </span>
  {/if}
