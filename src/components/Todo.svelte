@@ -1,7 +1,6 @@
 <script lang="ts">    
 
     import Todos, { type ITodo } from "../data/Todos";
-
     import type { ITag } from '../data/Tags';
 
     import Tag from './Tag.svelte';
@@ -27,6 +26,15 @@
         }
     }
 
+    const onTagRemove = async (ev: CustomEvent) => {
+        if(confirm("remove Tag?")) {
+            const oTag: ITag = ev.detail;
+            todo.tags = todo.tags.filter( (t) => t != oTag.key );
+            Todos.set(todo);
+        }
+
+    }
+
 </script>
 
 <article 
@@ -44,7 +52,11 @@
 
     <ul>
         {#each todo.tags as tag}
-        <li><Tag key={tag} on:click={(ev) => onTagClick(ev.detail)} /></li>
+        <li><Tag 
+            key={tag} 
+            on:click={(ev) => onTagClick(ev.detail)} 
+            on:remove={onTagRemove}
+            noremove={todo.done}/></li>
         {/each}
     </ul>
 </article>

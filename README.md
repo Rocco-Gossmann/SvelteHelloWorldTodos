@@ -25,7 +25,8 @@ Help me to learn:
 - ✔ add Tags
   - ✔ assign tags 
   - ✔ filter todo list by tag
-  - ⬜ remove tags from todos
+  - ✔ remove tags from todos
+  - ⬜ add more tags to existing todo
   - ⬜ remove tags from app
 
 
