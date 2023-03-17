@@ -1,7 +1,7 @@
 <script lang="ts">
     import './assets/main.css'
 
-	import TagInput from './components/TagInput.svelte';
+	import TagFilter from './components/TagFilter.svelte';
     import TodoInput from './components/TodoInput.svelte';
     import TodoList from './components/TodoList.svelte';
     import Toast from './lib/components/Toast.svelte';
@@ -21,7 +21,7 @@
 </nav>
 <Toast />
 
-<TagInput />
+<TagFilter />
 
 <h1 class="text-center">Todos</h1>
 

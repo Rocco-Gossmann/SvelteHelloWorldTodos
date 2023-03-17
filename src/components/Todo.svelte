@@ -4,7 +4,7 @@
     import type { ITag } from '../data/Tags';
 
     import Tag from './Tag.svelte';
-    import { addTag } from './TagInput.svelte';
+    import { addTag } from './TagFilter.svelte';
     import { toast } from '../lib/components/Toast.svelte';
 
     export let todo: ITodo;
