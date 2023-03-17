@@ -1,0 +1,15 @@
+BODY {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+}
+
+.noscrollbars {
+    --scrollbarwidth: 0px;
+    width: calc(100% + var(--scrollbarwidth));
+    height: calc(100vh + var(--scrollbarwidth));
+    height: calc(100dvh + var(--scrollbarwidth));
+    overflow: scroll;
+}

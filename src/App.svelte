@@ -1,5 +1,9 @@
 <script lang="ts">
     import './assets/main.css'
+    
+    import './assets/lib/noscrollbars.js'
+    import './assets/lib/noscrollbars.css'
+
     import TagDataList from './components/TagDataList.svelte';
 
 	import TagFilter from './components/TagFilter.svelte';
