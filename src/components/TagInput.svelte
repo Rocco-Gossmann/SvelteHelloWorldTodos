@@ -3,19 +3,12 @@
     import { writable } from 'svelte/store';
 
     export const tagfilter = writable<string[]>([]);
-    export const tagDisplay = writable<string[]>([]);
 
     export function addTag(tag: ITag) {
         tagfilter.update( lst => {
             if(lst.indexOf(tag.key) == -1) {
                 lst.push(tag.key);
             }
-            return lst;
-        });
-
-        tagDisplay.update( lst => {
-            if(lst.indexOf(tag.value) == -1)
-                lst.push(tag.value);
             return lst;
         });
     }
@@ -41,12 +34,9 @@
 
                 clearTags.forEach((t) => tagfilter.update( list => lastlist = list.filter( t1 => t1 != t)))
 
-                if(isArray(tags)) {
+                if(isArray(tags))
                     tags = tags.filter(t=>typeof(t) !== 'undefined');
-                    tagDisplay.set(tags.map( (t: ITag) => {
-                        if(t) return t.value
-                    }))
-                } 
+
             })()
         }
 
@@ -92,14 +82,7 @@
     }
 
     const removeTag = async (oTag: ITag) => {
-        try {
-            $tagfilter = $tagfilter.filter( (t) => t != oTag.key );
-            $tagDisplay = $tagDisplay.filter( (t) => t != oTag.value );
-        }
-        catch( err ) { 
-            console.error(err); 
-            toast("error see console", "alert", 2);
-        }
+        $tagfilter = $tagfilter.filter( (t) => t != oTag.key );
     }
 
 </script>
@@ -115,13 +98,13 @@
 
 <section class="taglist" class:open={visible} transition:slide|local>
 
-{#if $tagDisplay.length}
+{#if $tagfilter.length}
 
-    {#each $tagDisplay as tag}
+    {#each $tagfilter as tag}
         <Tag noclick
-            value={tag} 
+            key={tag} 
             on:remove={ (ev) => removeTag(ev.detail) } 
-            />
+        />
     {/each}
 
 {:else}
