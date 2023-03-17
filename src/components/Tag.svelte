@@ -26,6 +26,6 @@
  <span class="tag">
     <a href={'#'} on:click|preventDefault={() => on("click", oTag)}>{oTag.value}</a>
     <a href={'#'} class="fa fa-times" 
-        on:click|preventDefault={() => on("remove")}>&nbsp;</a>
+        on:click|preventDefault={() => on("remove", oTag)}>&nbsp;</a>
  </span>
  {/if}
