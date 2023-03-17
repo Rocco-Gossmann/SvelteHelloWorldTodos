@@ -10,10 +10,9 @@
     export let noclick = false;
 
     let oTag: ITag;
+    const on = createEventDispatcher()
 
-    $: if(tag) { 
-        oTag = tag; 
-    }
+    $: if(tag)  oTag = tag; 
 
     else if(key) {
         try {
@@ -27,7 +26,6 @@
         } catch( err ) { console.error( err ); oTag = undefined; }
     }
 
-    const on = createEventDispatcher()
 
 </script>
 

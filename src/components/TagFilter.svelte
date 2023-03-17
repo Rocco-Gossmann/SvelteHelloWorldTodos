@@ -55,12 +55,13 @@
     import Tag from './Tag.svelte';
     import Tags, { ITag, TagsError } from '../data/Tags'
     import Todos from '../data/Todos';
-    import { toast } from '../lib/components/Toast.svelte';
     import TagInput from './TagInput.svelte';
+    import { toast } from '../lib/components/Toast.svelte';
 
     $: visible = $tagfilter.length > 0;
 
     let tagInput = "";
+    let contextTag: ITag;
 
     const onAddTag = async (ev: CustomEvent) => {
         let oTag: ITag = ev.detail;
@@ -70,6 +71,16 @@
 
     const removeTag = async (oTag: ITag) => {
         $tagfilter = $tagfilter.filter( (t) => t != oTag.key );
+    }
+
+    const dropTag =async () => {
+        if(contextTag){
+            console.log(contextTag);
+            await contextTag.drop();
+            $tagfilter = $tagfilter.filter( (t) => t != contextTag.key );
+            contextTag = undefined;
+            toast("tag removed", "info", 2);
+        }
     }
 
 </script>
@@ -86,10 +97,19 @@
 {#if $tagfilter.length}
 
     {#each $tagfilter as tag}
-        <Tag noclick
+        <Tag 
             key={tag} 
             on:remove={ (ev) => removeTag(ev.detail) } 
+            on:click={ (ev) => contextTag = contextTag?.key==ev.detail.key ? "" : ev.detail }
         />
+
+        {#if contextTag?.key == tag}
+        <ul>
+            <li><a  href={'#'} class="fa fa-trash-can"
+                on:click|preventDefault={dropTag} 
+                >&nbsp <span>remove from app</span></a></li>
+        </ul>
+        {/if}
     {/each}
 
 {:else}

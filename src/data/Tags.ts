@@ -35,15 +35,15 @@ export class ITag {
     async drop(): Promise<void> {
 
         const _db = await db
-        const oTag = await _db.tags(this.key).first()
+        await _db.tags.delete(this.key)
 
-        if (oTag)
-            await _db.tags.delete(this.key)
-
-        await _db.todos.where("tags").equals(this.key).each((e) => {
+        const tagUpdates = [];
+        console.log(await _db.todos.where("tags").equals(this.key).each((e) => {
             e.tags = e.tags.filter(t => t != this.key)
-            return _db.todos.put(e)
-        })
+            tagUpdates.push(e);
+        }))
+
+        await _db.todos.bulkPut(tagUpdates);
 
         tagstore.refresh();
     }
@@ -55,8 +55,11 @@ export class ITag {
 
 function findByKey(key: string): Promise<ITag> {
     return db.then(db => db.tags.where("key").equals(key).first()).then(e => {
-        if (!e) throw new TagsError(TagsError.NO_TAG_FOR_KEY)
-        else return e
+        if (!e) {
+            console.log(key)
+            throw new TagsError(TagsError.NO_TAG_FOR_KEY)
+        }
+        else return new ITag(e);
     })
 }
 

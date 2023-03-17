@@ -27,7 +27,7 @@ Help me to learn:
   - ✔ filter todo list by tag
   - ✔ remove tags from todos
   - ✔ add more tags to existing todo
-  - ⬜ remove tags from app
+  - ✔ remove tags from app
 
 
 ### Step 3 - Security and Portability
