@@ -1,5 +1,6 @@
 <script lang="ts">
     import './assets/main.css'
+    import TagDataList from './components/TagDataList.svelte';
 
 	import TagFilter from './components/TagFilter.svelte';
     import TodoInput from './components/TodoInput.svelte';
@@ -28,3 +29,5 @@
 <TodoInput />
 
 <TodoList />
+
+<TagDataList />

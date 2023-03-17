@@ -2,19 +2,25 @@
     import { createEventDispatcher } from "svelte";
     import Tags, { ITag } from "../data/Tags";
 
+    export let tag: ITag|undefined = undefined;
     export let value = "";
     export let key = "";
 
     export let noremove = false;
     export let noclick = false;
 
-    let oTag: ITag|void;
+    let oTag: ITag;
 
-    $: if(key) {
+    $: if(tag) { 
+        oTag = tag; 
+    }
+
+    else if(key) {
         try {
             Tags.findByKey(key).then( t => oTag = t );
         } catch( err ) { console.error( err ); oTag = undefined; }
     }
+
     else if( value ) {
         try {
             Tags.findByValue(value).then( t => oTag = t );

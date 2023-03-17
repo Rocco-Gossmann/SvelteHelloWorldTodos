@@ -62,26 +62,10 @@
 
     let tagInput = "";
 
-    const onAddTag = async () => {
-        let oTag: ITag;
-
-        try {
-            oTag = new ITag({value: tagInput});
-            await oTag.insert();
-            addTag(oTag);
-            tagInput = "";
-        } catch( err ) {
-            if(err instanceof TagsError && (
-                err.message == TagsError.EMPTY_TAG_KEY
-                || err.message == TagsError.INVALID_CONSTRUCT
-            )) {
-                toast("cant add empty tag", "alert", 3);             
-            }
-            else {
-                console.error(err);
-                toast("ERROR: see console", "alert", 2);             
-            }
-        }
+    const onAddTag = async (ev: CustomEvent) => {
+        let oTag: ITag = ev.detail;
+        addTag(oTag);
+        tagInput = "";
     }
 
     const removeTag = async (oTag: ITag) => {

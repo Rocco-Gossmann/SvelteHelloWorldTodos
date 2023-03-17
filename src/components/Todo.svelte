@@ -1,13 +1,16 @@
 <script lang="ts">    
-
+    import { slide } from "svelte/transition";
     import Todos, { type ITodo } from "../data/Todos";
-    import type { ITag } from '../data/Tags';
+    import { Tags, type ITag } from '../data/Tags';
 
     import Tag from './Tag.svelte';
     import { addTag } from './TagFilter.svelte';
     import { toast } from '../lib/components/Toast.svelte';
+    import TagInput from "./TagInput.svelte";
 
     export let todo: ITodo;
+
+    let showTagInput = false;
 
     const dropTodo = ( todo ) => {
         if(confirm("remove todo permanently ?"))
@@ -35,6 +38,17 @@
 
     }
 
+    const onTagAdd = async (ev: CustomEvent) => {
+        const oTag: ITag = ev.detail; 
+
+        if(todo.tags.indexOf(oTag.key) == -1) {
+            todo.tags.push(oTag.key);
+            Todos.set(todo);
+        }
+
+        showTagInput = false;
+    }
+
 </script>
 
 <article 
@@ -59,6 +73,16 @@
             noremove={todo.done}/></li>
         {/each}
     </ul>
+
+    <button on:click|preventDefault={() => showTagInput = !showTagInput} 
+        class="fa fa-tag" title="new Tag"></button>
+
+    {#if showTagInput}
+        <div class="taginput">
+            <TagInput on:submit={onTagAdd}/>
+        </div>
+    {/if}
+
 </article>
 
 <style>
@@ -76,6 +100,10 @@
     UL {
         display: flex;
         margin-bottom: 0px;
+        grid-column: 1 / -2;
+    }
+
+    ARTICLE > DIV.taginput {
         grid-column: 1 / -1;
     }
 

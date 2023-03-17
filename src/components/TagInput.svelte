@@ -1,32 +1,58 @@
-<script context="module" lang="ts">
-
-</script>
-
 <script lang="ts">
     import { slide } from 'svelte/transition'
     import { createEventDispatcher } from 'svelte';
-    import { tagstore } from '../data/Tags';
+    import Tags, { ITag, TagsError } from '../data/Tags';
+    import { toast } from '../lib/components/Toast.svelte';
 
     const on = createEventDispatcher();
 
     export let visible = true;
     export let value = "";
+    export let noautocreate = false;
 
-    $tagstore
+    const onSubmit = async () => {
+        let oTag: ITag;
+
+        try { oTag = await Tags.findByValue(value); } 
+        catch ( err ) { 
+            if(err instanceof TagsError && err.message == TagsError.NO_TAG_FOR_KEY) {
+                try { 
+                    if(noautocreate) {
+                        toast("tag is unknown", "alert", 2); 
+                        return
+                    } 
+                    else {
+                        oTag = new ITag({value}); 
+                        await oTag.insert();
+                    }
+                }
+                catch( err ) {
+                    if(err instanceof TagsError && err.message == TagsError.EMPTY_TAG_KEY) 
+                        toast("can't submit an empty Tag", "alert", 2);
+                    else {
+                        console.error( err )
+                        toast("ERROR: see console", "alert", 2);
+                    }
+                    return
+                }
+            } 
+            else {
+                console.error( err )
+                toast("ERROR: see console", "alert", 2);
+                return
+            }
+        }
+
+        on("submit", oTag);
+    }
 </script>
 {#if visible}
 <form class="taginput" class:open={visible} 
     transition:slide 
-    on:submit|preventDefault={() => on("submit", value)}
+    on:submit|preventDefault={onSubmit}
 >
-    <input type="text" bind:value={value} list="taginput_datalist" autocomplete=""/>
+    <input type="text" bind:value={value} list="available_tags" autocomplete=""/>
     <button type="submit" class="fa fa-plus-circle"></button>
-
-    <datalist id="taginput_datalist">
-        {#each $tagstore as tag}
-            <option value={tag.value} /> 
-        {/each}
-    </datalist> 
 </form>
 {/if}
 

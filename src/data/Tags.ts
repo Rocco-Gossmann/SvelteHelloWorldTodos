@@ -45,10 +45,11 @@ export class ITag {
             return _db.todos.put(e)
         })
 
+        tagstore.refresh();
     }
 
     insert(): Promise<void> {
-        return table().then(tab => tab.put(this))
+        return table().then(tab => tab.put(this)).then( () => tagstore.refresh() )
     }
 }
 
