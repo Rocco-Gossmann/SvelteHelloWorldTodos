@@ -60,7 +60,6 @@
 
     <span class="txt">{todo.description}</span>
 
-
     <button on:click|preventDefault={() => dropTodo(todo)} 
         class="fa fa-trash-can" title="delete"></button>
 

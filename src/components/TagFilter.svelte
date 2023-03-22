@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
     import { isArray } from '../lib/utils';
     import { writable } from 'svelte/store';
+    import { edittag } from './TagEdit.svelte';
 
     export const tagfilter = writable<string[]>([]);
 
@@ -57,6 +58,7 @@
     import Todos from '../data/Todos';
     import TagInput from './TagInput.svelte';
     import { toast } from '../lib/components/Toast.svelte';
+    import TagEdit from './TagEdit.svelte';
 
     $: visible = $tagfilter.length > 0;
 
@@ -92,6 +94,8 @@
 
 <TagInput bind:value={tagInput} on:submit={onAddTag} />
 
+<TagEdit />
+
 <section class="taglist" class:open={visible} transition:slide|local>
 
 {#if $tagfilter.length}
@@ -100,16 +104,8 @@
         <Tag 
             key={tag} 
             on:remove={ (ev) => removeTag(ev.detail) } 
-            on:click={ (ev) => contextTag = contextTag?.key==ev.detail.key ? "" : ev.detail }
+            on:click={ (ev) => $edittag = $edittag?.key==ev.detail.key ? undefined : ev.detail }
         />
-
-        {#if contextTag?.key == tag}
-        <ul>
-            <li><a  href={'#'} class="fa fa-trash-can"
-                on:click|preventDefault={dropTag} 
-                >&nbsp <span>remove from app</span></a></li>
-        </ul>
-        {/if}
     {/each}
 
 {:else}
@@ -134,16 +130,10 @@
     }
 
     SECTION.taglist :global(SPAN.tag) {
-        display: inline-block;
         margin: var(--spacing);
-        background-color: var(--muted-color);
-        padding: var(--nav-link-spacing-vertical) var(--nav-link-spacing-horizontal);
-        border-radius: var(--border-radius);
-        color: white;
     }
 
     SECTION.taglist :global(SPAN.tag > A) {
-        color: white;
         margin-left: var(--spacing);
     }
 

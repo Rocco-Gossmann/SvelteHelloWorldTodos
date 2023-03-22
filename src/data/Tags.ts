@@ -11,6 +11,7 @@ export class TagsError extends Error {
 export class ITag {
     public key: string
     public value: string
+    public color?: string;
 
     constructor(
         payload: Partial<ITag>
@@ -28,6 +29,8 @@ export class ITag {
             this.key = getKey(payload.value)
         }
         else throw new TagsError(TagsError.INVALID_CONSTRUCT)
+
+        this.color = payload.color || '#73828c'; 
 
         if (this.key == "") throw new TagsError(TagsError.EMPTY_TAG_KEY)
     }

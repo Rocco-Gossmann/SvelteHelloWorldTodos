@@ -30,7 +30,7 @@
 </script>
 
 {#if oTag}
- <span class="tag">
+ <span class="tag" style={`--bgcolor: ${oTag.color}`}>
     {#if noclick}
         {oTag.value}
     {:else}
@@ -42,3 +42,19 @@
     {/if}
  </span>
  {/if}
+
+ <style lang="scss">
+    .tag  {
+        position: relative;
+        --bgcolor: white;
+        border-radius: var(--border-radius);
+        padding: var(--nav-link-spacing-vertical) var(--nav-link-spacing-horizontal);
+        box-shadow: 0px 0px 4px 2px var(--bgcolor);
+        border: 2px solid var(--bgcolor);
+
+        & > A{
+            color: black;
+        }
+
+    }
+ </style>
