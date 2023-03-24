@@ -70,6 +70,7 @@
     }
 
     const removeTag = async (oTag: TagStore) => {
+        if($edittag == oTag) $edittag = undefined;
         $tagfilter = $tagfilter.filter( (t) => t != oTag.object.key );
     }
 
