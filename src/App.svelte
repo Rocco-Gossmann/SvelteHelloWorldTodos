@@ -10,6 +10,7 @@
     import TodoInput from './components/TodoInput.svelte';
     import TodoList from './components/TodoList.svelte';
     import Toast from './lib/components/Toast.svelte';
+    import ViteUpdatePrompt from './lib/components/ViteUpdatePrompt.svelte';
 </script>
 
 <svelte:head>
@@ -35,3 +36,5 @@
 <TodoList />
 
 <TagDataList />
+
+<ViteUpdatePrompt />
