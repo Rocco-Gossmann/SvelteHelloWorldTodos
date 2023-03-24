@@ -1,8 +1,10 @@
 <script lang="ts">
-    import { tagstore } from '../data/Tags';
+	import TagDataListOption from './TagDataListOption.svelte';
+    import { tagsstore } from '../data/Tags';
+
 </script>
 <datalist id="available_tags">
-    {#each $tagstore as tag}
-        <option value={tag.value} /> 
+    {#each $tagsstore as store}
+        <TagDataListOption tagstore={store} />
     {/each}
 </datalist> 

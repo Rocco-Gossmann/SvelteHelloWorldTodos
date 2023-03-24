@@ -1,7 +1,7 @@
 <script lang="ts">
     import { slide } from 'svelte/transition'
     import { createEventDispatcher } from 'svelte';
-    import Tags, { ITag, TagsError } from '../data/Tags';
+    import Tags, { ITag, TagsError, type TagStore } from '../data/Tags';
     import { toast } from '../lib/components/Toast.svelte';
 
     const on = createEventDispatcher();
@@ -9,9 +9,9 @@
     export let visible = true;
     export let value = "";
     export let noautocreate = false;
+    let oTag: TagStore;
 
     const onSubmit = async () => {
-        let oTag: ITag;
 
         try { oTag = await Tags.findByValue(value); } 
         catch ( err ) { 
@@ -22,8 +22,9 @@
                         return
                     } 
                     else {
-                        oTag = new ITag({value}); 
-                        await oTag.insert();
+                        const tag = new ITag({value}); 
+                        await tag.insert();
+                        oTag = Tags.getTagStore(tag);
                     }
                 }
                 catch( err ) {
@@ -42,7 +43,7 @@
                 return
             }
         }
-
+        
         on("submit", oTag);
     }
 </script>

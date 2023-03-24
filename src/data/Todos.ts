@@ -37,8 +37,7 @@ class TodoStore implements Readable<ITodo[]> {
 
                 return ret;
             }).toArray()
-
-                return        }
+        }
         else return db.todos.toArray();
     })
 }
@@ -60,6 +59,9 @@ export const todos = new TodoStore();
 let tagFilter = [];
 
 export async function set(todo: ITodo, updateStore = true) { 
+    // make sure no undefined tags make it into the DB
+    if (todo.tags)
+        todo.tags = todo.tags.filter(t => typeof (t) === 'string');
     await (await db).table("todos").put(todo)
     if (updateStore) await todos.refresh()
 }

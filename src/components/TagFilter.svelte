@@ -54,35 +54,23 @@
 <script lang="ts">
     import { slide } from 'svelte/transition'
     import Tag from './Tag.svelte';
-    import Tags, { ITag, TagsError } from '../data/Tags'
+    import Tags, { ITag, type TagStore } from '../data/Tags'
     import Todos from '../data/Todos';
     import TagInput from './TagInput.svelte';
-    import { toast } from '../lib/components/Toast.svelte';
     import TagEdit from './TagEdit.svelte';
 
     $: visible = $tagfilter.length > 0;
 
     let tagInput = "";
-    let contextTag: ITag;
 
     const onAddTag = async (ev: CustomEvent) => {
-        let oTag: ITag = ev.detail;
+        let oTag: ITag  = ev.detail.object;
         addTag(oTag);
         tagInput = "";
     }
 
-    const removeTag = async (oTag: ITag) => {
-        $tagfilter = $tagfilter.filter( (t) => t != oTag.key );
-    }
-
-    const dropTag =async () => {
-        if(contextTag){
-            console.log(contextTag);
-            await contextTag.drop();
-            $tagfilter = $tagfilter.filter( (t) => t != contextTag.key );
-            contextTag = undefined;
-            toast("tag removed", "info", 2);
-        }
+    const removeTag = async (oTag: TagStore) => {
+        $tagfilter = $tagfilter.filter( (t) => t != oTag.object.key );
     }
 
 </script>
@@ -104,7 +92,10 @@
         <Tag 
             key={tag} 
             on:remove={ (ev) => removeTag(ev.detail) } 
-            on:click={ (ev) => $edittag = $edittag?.key==ev.detail.key ? undefined : ev.detail }
+            on:click={ (ev) => {
+                console.log(ev.detail, $edittag, edittag)
+                edittag.set(edittag && $edittag==ev.detail ? undefined : ev.detail) 
+            }}
         />
     {/each}
 

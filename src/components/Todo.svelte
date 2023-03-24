@@ -1,7 +1,7 @@
 <script lang="ts">    
     import { slide } from "svelte/transition";
     import Todos, { type ITodo } from "../data/Todos";
-    import type { ITag } from '../data/Tags';
+    import type { ITag, TagStore } from '../data/Tags';
 
     import Tag from './Tag.svelte';
     import { addTag } from './TagFilter.svelte';
@@ -22,8 +22,8 @@
         Todos.set(todo)
     }
 
-    const onTagClick = async (tag: ITag) => {
-        try { addTag(tag); }
+    const onTagClick = async (tag: TagStore) => {
+        try { addTag(tag.object); }
         catch( err ) {
             toast("cant add tag (See Console)", "alert", 2);
         }
@@ -31,18 +31,19 @@
 
     const onTagRemove = async (ev: CustomEvent) => {
         if(confirm("remove Tag?")) {
-            const oTag: ITag = ev.detail;
-            todo.tags = todo.tags.filter( (t) => t != oTag.key );
+            const oTag: TagStore = ev.detail;
+            todo.tags = todo.tags.filter( (t) => t != oTag.object.key );
             Todos.set(todo);
         }
 
     }
 
     const onTagAdd = async (ev: CustomEvent) => {
-        const oTag: ITag = ev.detail; 
+        console.log(ev);
+        const oTag: TagStore = ev.detail; 
 
-        if(todo.tags.indexOf(oTag.key) == -1) {
-            todo.tags.push(oTag.key);
+        if(todo.tags.indexOf(oTag.object.key) == -1) {
+            todo.tags.push(oTag.object.key);
             Todos.set(todo);
         }
 

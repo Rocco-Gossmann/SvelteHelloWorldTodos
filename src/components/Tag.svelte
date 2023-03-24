@@ -1,7 +1,8 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import Tags, { ITag } from "../data/Tags";
+    import Tags, {type TagStore, ITag } from "../data/Tags";
 
+    export let tagstore: TagStore|undefined = undefined;
     export let tag: ITag|undefined = undefined;
     export let value = "";
     export let key = "";
@@ -9,10 +10,12 @@
     export let noremove = false;
     export let noclick = false;
 
-    let oTag: ITag;
+    let oTag: TagStore;
     const on = createEventDispatcher()
 
-    $: if(tag)  oTag = tag; 
+    $: if(tagstore) oTag = tagstore
+    
+    else if(tag)  oTag = Tags.getTagStore(tag); 
 
     else if(key) {
         try {
@@ -26,15 +29,14 @@
         } catch( err ) { console.error( err ); oTag = undefined; }
     }
 
-
 </script>
 
 {#if oTag}
- <span class="tag" style={`--bgcolor: ${oTag.color}`}>
+ <span class="tag" style={`--tagcolor: ${$oTag.color}`}>
     {#if noclick}
-        {oTag.value}
+        {$oTag.value}
     {:else}
-        <a href={'#'} on:click|preventDefault={() => on("click", oTag)}>{oTag.value}</a>
+        <a href={'#'} on:click|preventDefault={() => on("click", oTag)}>{$oTag.value}</a>
     {/if}
     {#if !noremove}
     <a href={'#'} class="fa fa-times" 
@@ -45,12 +47,13 @@
 
  <style lang="scss">
     .tag  {
+        --tagcolor: white;
+
         position: relative;
-        --bgcolor: white;
         border-radius: var(--border-radius);
         padding: var(--nav-link-spacing-vertical) var(--nav-link-spacing-horizontal);
-        box-shadow: 0px 0px 4px 2px var(--bgcolor);
-        border: 2px solid var(--bgcolor);
+        box-shadow: 0px 0px 4px 2px var(--tagcolor);
+        border: 2px solid var(--tagcolor);
 
         & > A{
             color: black;

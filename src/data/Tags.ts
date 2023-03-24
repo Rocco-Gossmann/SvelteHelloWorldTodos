@@ -1,5 +1,6 @@
 import type { Readable, Subscriber, Unsubscriber } from "svelte/store"
 import { db } from "../lib/database"
+import { SvelteObjectStore } from "../lib/SvelteObjectStore"
 export class TagsError extends Error {
     static readonly EMPTY_TAG_KEY = "the given value resulted in an empty tag-key";
 
@@ -48,32 +49,58 @@ export class ITag {
 
         await _db.todos.bulkPut(tagUpdates);
 
-        tagstore.refresh();
+        tagsstore.refresh();
     }
 
     insert(): Promise<void> {
-        return table().then(tab => tab.put(this)).then( () => tagstore.refresh() )
+        return table().then(tab => tab.put(this)).then( () => tagsstore.refresh() )
     }
 }
 
-function findByKey(key: string): Promise<ITag> {
+export class TagStore extends SvelteObjectStore<ITag> { 
+
+    constructor(tag: ITag) {
+        super(tag, () => { 
+            tagStores.set(tag.key, this);
+            return () => tagStores.delete(tag.key);
+        })
+    }
+
+    notifiySubscribers() { this.set(this.object); }
+
+}
+
+const tagStores: Map<string, TagStore> = new Map()
+
+function getTagStore(tag: Partial<ITag>): TagStore { 
+    const protoTag = new ITag(tag)
+
+    if (tagStores.has(protoTag.key)) {
+        return tagStores.get(protoTag.key)
+    }
+    else { 
+        return new TagStore(protoTag);
+    }
+}
+
+function findByKey(key: string): Promise<TagStore> {
     return db.then(db => db.tags.where("key").equals(key).first()).then(e => {
         if (!e) {
             console.log(key)
             throw new TagsError(TagsError.NO_TAG_FOR_KEY)
         }
-        else return new ITag(e);
+        else return getTagStore(e);
     })
 }
 
-function findByValue(value: string): Promise<ITag> {
+function findByValue(value: string): Promise<TagStore> {
     return findByKey(getKey(value))
 }
 
-class TagStore implements Readable<ITag[]> {
-    private subs: Set<Subscriber<ITag[]>> = new Set();
+class TagsStore implements Readable<TagStore[]> {
+    private subs: Set<Subscriber<TagStore[]>> = new Set();
 
-    subscribe(run: Subscriber<ITag[]>): Unsubscriber {
+    subscribe(run: Subscriber<TagStore[]>): Unsubscriber {
         console.log("new sub", run)
         this.subs.add(run)
         run([])
@@ -91,10 +118,10 @@ class TagStore implements Readable<ITag[]> {
         this.subs.forEach(s => s(dat))
     }
 
-    private _dat(): Promise<ITag[]> {
+    private _dat(): Promise<TagStore[]> {
         return table()
             .then( tab => tab.toArray() )
-            .then( arr => arr.map((obj: Object) => new ITag(obj)))
+            .then( arr => arr.map((obj: Object) => getTagStore(obj)))
         
     }
 
@@ -105,16 +132,19 @@ class TagStore implements Readable<ITag[]> {
 // Module Exports
 //==============================================================================
 interface ITagsModule {
-    tagstore: TagStore,
+    tagsstore: TagsStore,
 
-    findByValue: (tag: string) => Promise<ITag>
+    findByValue: (tag: string) => Promise<TagStore>
 
-    findByKey: (tag: string) => Promise<ITag>
+    findByKey: (tag: string) => Promise<TagStore>
+
+    getTagStore: (tag: Partial<ITag>) => TagStore
 }
 
-export const tagstore = new TagStore()
 
-export const Tags: ITagsModule = { tagstore, findByKey, findByValue }
+export const tagsstore = new TagsStore()
+
+export const Tags: ITagsModule = {getTagStore, tagsstore, findByKey, findByValue }
 
 export default Tags
 
@@ -127,4 +157,4 @@ export default Tags
 //==============================================================================
 async function table() { return (await db).tags }
 
-function getKey(value: string) { return value.trim().toLowerCase() }
+function getKey(value: string) { return (value||"").trim().toLowerCase() }
