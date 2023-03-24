@@ -11,10 +11,6 @@ const updateSW = registerSW({
 
   onNeedRefresh() {
     show_update_prompt.set(updateSW);
-  },
-
-  onOfflineReady() {
-    alert("all is offline ready");
   }
 
 })
