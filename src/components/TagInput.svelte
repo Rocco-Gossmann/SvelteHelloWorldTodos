@@ -22,7 +22,7 @@
                         return
                     } 
                     else {
-                        const tag = new ITag({value}); 
+                        const tag = await ITag.createNew(value);
                         await tag.insert();
                         oTag = Tags.getTagStore(tag);
                     }

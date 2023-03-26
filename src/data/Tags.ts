@@ -1,11 +1,16 @@
 import type { Readable, Subscriber, Unsubscriber } from "svelte/store"
 import { db } from "../lib/database"
 import { SvelteObjectStore } from "../lib/SvelteObjectStore"
+import Cryptography, { sha256 } from "../lib/cryptography";
+
+const _db = await db;
+
+const module_version = 1;
+const empty_hash = await Cryptography.sha256("", true) as string;
+
 export class TagsError extends Error {
     static readonly EMPTY_TAG_KEY = "the given value resulted in an empty tag-key";
-
     static readonly NO_TAG_FOR_KEY = "a tag for the given Key or Value does not exist in the Database";
-
     static readonly INVALID_CONSTRUCT = "construct must be provided with either 'key' or 'value'";
 }
 
@@ -13,39 +18,33 @@ export class ITag {
     public key: string
     public value: string
     public color?: string;
+    public version?: number;
+
+    static async createNew(value: string, color: string = '#73828c') {
+        const key = await Cryptography.sha256(getKey(value), true) as string
+        return new ITag({ value, key, color, version: module_version })
+    }
 
     constructor(
         payload: Partial<ITag>
     ) {
-        if (payload.value && payload.key) {
-            this.value = payload.value
-            this.key = getKey(payload.key)
-        }
-        else if (payload.key) {
-            this.value = payload.key
-            this.key = getKey(payload.key)
-        }
-        else if (payload.value) {
-            this.value = payload.value
-            this.key = getKey(payload.value)
-        }
-        else throw new TagsError(TagsError.INVALID_CONSTRUCT)
+        if (!payload.key || !payload.key.trim().length || payload.key.trim() == empty_hash)
+            throw new TagsError(TagsError.EMPTY_TAG_KEY);
 
+        this.key = payload.key;
+        this.value = payload.value || "corrupted tag"
         this.color = payload.color || '#73828c'; 
-
-        if (this.key == "") throw new TagsError(TagsError.EMPTY_TAG_KEY)
+        this.version = payload.version || 0; 
     }
 
     async drop(): Promise<void> {
-
-        const _db = await db
         await _db.tags.delete(this.key)
 
         const tagUpdates = [];
-        console.log(await _db.todos.where("tags").equals(this.key).each((e) => {
+        await _db.todos.where("tags").equals(this.key).each((e) => {
             e.tags = e.tags.filter(t => t != this.key)
             tagUpdates.push(e);
-        }))
+        })
 
         await _db.todos.bulkPut(tagUpdates);
 
@@ -53,7 +52,7 @@ export class ITag {
     }
 
     insert(): Promise<void> {
-        return table().then(tab => tab.put(this)).then( () => tagsstore.refresh() )
+        return _db.tags.put(this).then(() => tagsstore.refresh());
     }
 }
 
@@ -84,7 +83,7 @@ function getTagStore(tag: Partial<ITag>): TagStore {
 }
 
 function findByKey(key: string): Promise<TagStore> {
-    return db.then(db => db.tags.where("key").equals(key).first()).then(e => {
+    return _db.tags.where("key").equals(key).first().then(e => {
         if (!e) {
             console.log(key)
             throw new TagsError(TagsError.NO_TAG_FOR_KEY)
@@ -94,7 +93,12 @@ function findByKey(key: string): Promise<TagStore> {
 }
 
 function findByValue(value: string): Promise<TagStore> {
-    return findByKey(getKey(value))
+    return Cryptography.sha256(getKey(value), true)
+        .then( (key: string) => findByKey(key) )
+        .catch(err => {
+            console.error("for value", value)
+            throw err;
+        })
 }
 
 class TagsStore implements Readable<TagStore[]> {
@@ -150,11 +154,49 @@ export default Tags
 
 
 
-
-
 //==============================================================================
 // Helpers
 //==============================================================================
 async function table() { return (await db).tags }
 
 function getKey(value: string) { return (value||"").trim().toLowerCase() }
+
+
+
+//==============================================================================
+// Data Init
+//==============================================================================
+await Promise.all(
+    (await _db.tags.toArray()).map( async e => {
+        const oTag = new ITag(e);
+            switch (oTag.version) {
+                case module_version:
+                default: break;
+
+                case 0:
+                    const newkey = await Cryptography.sha256(oTag.key, true) as string
+                    const oldkey = oTag.key
+
+                    console.log("update key: ", oldkey, newkey)
+                    let todos = await _db.todos.where("tags").anyOf(oldkey).distinct().toArray()
+
+                    todos = todos.map(todo => {
+                        todo.tags = todo.tags.map(todotag => todotag == oldkey ? newkey : todotag)
+                        return todo
+                    })
+
+                    await _db.todos.bulkPut(todos)
+                    oTag.key = newkey
+
+                    await _db.tags.delete(oldkey);
+
+
+                case 99999999999999:
+                    console.log("tag update: ", oTag.version, "=>", module_version)
+                    oTag.version = module_version; 
+                    await oTag.insert();
+            }
+        
+    })
+);
+
