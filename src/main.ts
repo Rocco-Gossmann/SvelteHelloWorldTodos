@@ -8,11 +8,9 @@ const app = new App({
 })
 
 const updateSW = registerSW({
-
   onNeedRefresh() {
     show_update_prompt.set(updateSW);
   }
-
 })
 
 
