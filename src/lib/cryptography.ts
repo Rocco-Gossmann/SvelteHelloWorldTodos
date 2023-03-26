@@ -1,5 +1,16 @@
-export function sha256(data: string): Promise<ArrayBuffer> {
-    return crypto.subtle.digest(
+export function sha256(data: string, toString=false): Promise<ArrayBuffer|string> {
+    if (toString) {
+        return crypto.subtle.digest("SHA-256", (new TextEncoder()).encode(data)).then(buffer => {
+            const buff = new Uint8Array(buffer);
+            let ret = "";
+
+            for (let a = 0; a < buff.length; a++) 
+                ret += buff[a].toString(16).padStart(2, '0');
+
+            return ret;
+        })
+    }
+    else return crypto.subtle.digest(
         "SHA-256",  
         (new TextEncoder()).encode(data)
     );
@@ -10,6 +21,8 @@ function importSyncKey(passhash: ArrayBuffer) {
         passhash, "AES-GCM",
         false, ['encrypt', 'decrypt'])
 }
+
+export function uuid() { return crypto.randomUUID() }
 
 export class EncryptedData {
     data: Uint8Array
@@ -60,7 +73,7 @@ export class EncryptedData {
 }
 
 export async function synckey_encrypt(data: ArrayBuffer, pass: string): Promise<EncryptedData> { 
-    const key = await importSyncKey(await sha256(pass))
+    const key = await importSyncKey(await sha256(pass) as ArrayBuffer)
     const iv = new Uint8Array(16);
     await crypto.getRandomValues(iv);
 
@@ -76,7 +89,7 @@ export async function synckey_encrypt(data: ArrayBuffer, pass: string): Promise<
 
 export async function synckey_decrypt(data: EncryptedData, pass: string): Promise<ArrayBuffer> { 
     if (!data) return undefined;
-    const key = await importSyncKey(await sha256(pass))
+    const key = await importSyncKey(await sha256(pass) as ArrayBuffer)
     return await crypto.subtle.decrypt({
         name: "AES-GCM",
         length: 2048,
@@ -127,23 +140,29 @@ interface IBase64 {
 }
 
 interface CryptoGraphyExport {
-    sha256: (data: string) => Promise<ArrayBuffer>
+    sha256: (data: string, toString?:boolean) => Promise<ArrayBuffer|string>
+    uuid: () => string
 
     synckey: ISyncKey
 
     base64: IBase64
+
 }
 
 export const cryptography: CryptoGraphyExport = {
     sha256,
+    uuid,
+
     synckey: {
         encrypt: synckey_encrypt,
         decrypt: synckey_decrypt
     },
+
     base64: {
         encrypt: base64_encrypt,
         decrypt: base64_decrypt
-    }
+    },
+
 }
 
 export default cryptography; 
