@@ -20,5 +20,6 @@ export default defineConfig({
   }), svelte()],
   build: {
     outDir: "./docs",
-  }
+    target: "esnext"
+  },
 })
