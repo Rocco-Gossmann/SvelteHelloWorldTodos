@@ -32,8 +32,10 @@ Help me to learn:
 
 ### Step 3 - Security and Portability
 - ✔ Figure out Encryption via WebCrypto-API
-  - ⬜change how tags are identified, to make them encryptable, whithout them giving away their content
-  - ⬜encrypt TODOs in database
+  - ✔ change how tags are identified, to make them encryptable, without them giving away their content
+  - Add "Locking" and "Unlocking" mechanism to the APP
+    - ⬜ encrypt Tags in the database
+    - ⬜ encrypt TODOs in the database
 - ⬜ export encrypted JSON containing all todos and tags 
 - ⬜ import encrypted JSON and restore IndexedDB from it
 
