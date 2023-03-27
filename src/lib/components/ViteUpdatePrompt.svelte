@@ -28,6 +28,8 @@
         
         background-color: black;
         color: white;
+
+        z-index: 99999;
     } 
 
 </style>

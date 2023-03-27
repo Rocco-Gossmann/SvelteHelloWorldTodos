@@ -52,17 +52,20 @@
 <style>
     .toastcontainer {
         display: inline-block;
-        position: absolute;
+        position: fixed;
         display: block;
         text-align: center;
         left: 50%;
+        top: 0px;
         transform: translateX(-50%);
+        z-index: 99998;
     }
 
     .toastcontainer > ARTICLE {
         padding: calc(var(--block-spacing-vertical) / 2) var(--block-spacing-horizontal)
     }
 
+    .toastcontainer .error,
     .toastcontainer .alert {
         background-color: red;
         color: white;
