@@ -49,7 +49,8 @@
     .tag  {
         --tagcolor: white;
 
-        position: relative;
+        display: inline-block;
+        white-space: nowrap;
         border-radius: var(--border-radius);
         padding: var(--nav-link-spacing-vertical) var(--nav-link-spacing-horizontal);
         box-shadow: 0px 0px 4px 2px var(--tagcolor);

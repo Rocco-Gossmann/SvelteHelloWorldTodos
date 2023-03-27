@@ -100,7 +100,6 @@
     }
 
     UL {
-        display: flex;
         margin-bottom: 0px;
         grid-column: 1 / -2;
     }
