@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-	import { writable, type Writable } from 'svelte/store';
+    import { writable, type Writable } from 'svelte/store';
     export const key: Writable<CryptoKey> = writable();
 </script>
 
@@ -37,7 +37,7 @@
             key.set(await password2CryptoKey(passwordInput))
             unlocked = true;
             showUnlockDialog = false;
-            toast("TODO: Implement Encryption");
+            toast("TODO: Implement Encryption", "error", 5);
         }
     }
 
