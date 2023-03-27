@@ -11,6 +11,7 @@
     import TodoList from './components/TodoList.svelte';
     import Toast from './lib/components/Toast.svelte';
     import ViteUpdatePrompt from './lib/components/ViteUpdatePrompt.svelte';
+    import Lock from './components/Lock.svelte';
 </script>
 
 <svelte:head>
@@ -25,8 +26,9 @@
         <li><a href="https://github.com/Rocco-Gossmann/SvelteHelloWorldTodos" target="_blank">GitHub</a></li>
     </ul>
 </nav>
-<Toast />
 
+
+<Lock />
 <TagFilter />
 
 <h1 class="text-center">Todos</h1>
@@ -37,4 +39,5 @@
 
 <TagDataList />
 
+<Toast />
 <ViteUpdatePrompt />

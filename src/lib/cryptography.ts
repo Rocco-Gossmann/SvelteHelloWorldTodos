@@ -72,8 +72,12 @@ export class EncryptedData {
     }
 }
 
-export async function synckey_encrypt(data: ArrayBuffer, pass: string): Promise<EncryptedData> { 
-    const key = await importSyncKey(await sha256(pass) as ArrayBuffer)
+export function password2CryptoKey(pass: string): Promise<CryptoKey> {
+    return sha256(pass).then(hash => importSyncKey(hash as ArrayBuffer))
+}
+
+export async function synckey_encrypt(data: ArrayBuffer, pass: string|CryptoKey): Promise<EncryptedData> { 
+    const  key: CryptoKey = (pass instanceof CryptoKey) ? pass : await password2CryptoKey(pass);
     const iv = new Uint8Array(16);
     await crypto.getRandomValues(iv);
 
@@ -87,9 +91,11 @@ export async function synckey_encrypt(data: ArrayBuffer, pass: string): Promise<
     })
 }
 
-export async function synckey_decrypt(data: EncryptedData, pass: string): Promise<ArrayBuffer> { 
+export async function synckey_decrypt(data: EncryptedData, pass: string|CryptoKey): Promise<ArrayBuffer> { 
     if (!data) return undefined;
-    const key = await importSyncKey(await sha256(pass) as ArrayBuffer)
+
+    const key: CryptoKey = (pass instanceof CryptoKey) ? pass : await password2CryptoKey(pass);
+
     return await crypto.subtle.decrypt({
         name: "AES-GCM",
         length: 2048,
@@ -142,6 +148,7 @@ interface IBase64 {
 interface CryptoGraphyExport {
     sha256: (data: string, toString?:boolean) => Promise<ArrayBuffer|string>
     uuid: () => string
+    password2CryptoKey: (pass: string) => Promise<CryptoKey>
 
     synckey: ISyncKey
 
@@ -152,6 +159,7 @@ interface CryptoGraphyExport {
 export const cryptography: CryptoGraphyExport = {
     sha256,
     uuid,
+    password2CryptoKey,
 
     synckey: {
         encrypt: synckey_encrypt,
