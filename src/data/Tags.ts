@@ -1,12 +1,18 @@
 import type { Readable, Subscriber, Unsubscriber } from "svelte/store"
 import { db } from "../lib/database"
 import { SvelteObjectStore } from "../lib/SvelteObjectStore"
-import Cryptography, { sha256 } from "../lib/cryptography";
+import Cryptography, { EncryptedData } from "../lib/cryptography"
+
+import { key } from '../components/Lock.svelte'
 
 const _db = await db;
 
 const module_version = 1;
 const empty_hash = await Cryptography.sha256("", true) as string;
+
+
+let currentKey = undefined;
+
 
 export class TagsError extends Error {
     static readonly EMPTY_TAG_KEY = "the given value resulted in an empty tag-key";
@@ -19,6 +25,7 @@ export class ITag {
     public value: string
     public color?: string;
     public version?: number;
+    public data?: string // only exists, when the tag is encrypted
 
     static async createNew(value: string, color: string = '#73828c') {
         const key = await Cryptography.sha256(getKey(value), true) as string
@@ -32,9 +39,15 @@ export class ITag {
             throw new TagsError(TagsError.EMPTY_TAG_KEY);
 
         this.key = payload.key;
-        this.value = payload.value || "corrupted tag"
-        this.color = payload.color || '#73828c'; 
-        this.version = payload.version || 0; 
+        if (payload.data) {
+            this.data = payload.data;
+            this.value = "*******";
+        }
+        else {
+            this.value = payload.value || "corrupted tag"
+            this.color = payload.color || '#73828c'; 
+            this.version = payload.version || 0; 
+        }
     }
 
     async drop(): Promise<void> {
@@ -54,6 +67,32 @@ export class ITag {
     insert(): Promise<void> {
         return _db.tags.put(this).then(() => tagsstore.refresh());
     }
+
+    async unlock(key: CryptoKey) {
+        if (this.data) {
+            const tagdata = JSON.parse((new TextDecoder()).decode(await Cryptography.synckey.decrypt(
+                EncryptedData.fromBase64(this.data),
+                key
+            )));
+
+            this.value = tagdata.value;
+            this.color = tagdata.color;
+            this.version = tagdata.version;
+        }
+
+        return this;
+    }
+
+    async lock() {
+        if (this.data) {
+            this.value = "*******";
+            delete this.color
+            delete this.version
+        }
+
+        return this;
+    }
+
 }
 
 export class TagStore extends SvelteObjectStore<ITag> { 
@@ -101,6 +140,64 @@ function findByValue(value: string): Promise<TagStore> {
         })
 }
 
+async function encryptAll(key: CryptoKey, oldkey: CryptoKey = undefined) {
+    let newtags = [];
+    if (key && oldkey) {
+        await _db.tags.each(async tag => {
+            const tagdata = JSON.parse((new TextDecoder()).decode(await Cryptography.synckey.decrypt(
+                EncryptedData.fromBase64(tag.data),
+                oldkey
+            )));
+
+            newtags.push({
+                key: tag.key,
+                data: (await Cryptography.synckey.encrypt(
+                    (new TextEncoder()).encode(JSON.stringify({
+                        value: tagdata.value,
+                        color: tagdata.color,
+                        version: tagdata.version
+                    }))
+                    , key
+                )).toBase64()
+            });
+        })
+    }
+    else if (key) {
+        await _db.tags.each(async tag => {
+            if(tag.data) throw new Error("tag already encrypted")
+            newtags.push({
+                key: tag.key,
+                data: (await Cryptography.synckey.encrypt(
+                    (new TextEncoder()).encode(JSON.stringify({
+                        value: tag.value,
+                        color: tag.color,
+                        version: tag.version
+                    }))
+                    , key
+                )).toBase64()
+            });
+        })
+    }
+    else if(oldkey) { 
+        await _db.tags.each(async tag => {
+
+            const tagdata = JSON.parse((new TextDecoder()).decode(await Cryptography.synckey.decrypt(
+                EncryptedData.fromBase64(tag.data),
+                oldkey
+            )));
+
+            newtags.push({
+                key: tag.key,
+                value: tagdata.value,
+                color: tagdata.color,
+                version: tagdata.version
+            });
+        })
+    }
+
+    if(newtags.length) await _db.tags.bulkPut(newtags)
+}
+
 class TagsStore implements Readable<TagStore[]> {
     private subs: Set<Subscriber<TagStore[]>> = new Set();
 
@@ -143,12 +240,14 @@ interface ITagsModule {
     findByKey: (tag: string) => Promise<TagStore>
 
     getTagStore: (tag: Partial<ITag>) => TagStore
+
+    encryptAll: (key: CryptoKey, oldkey?: CryptoKey) => Promise<void>
 }
 
 
 export const tagsstore = new TagsStore()
 
-export const Tags: ITagsModule = {getTagStore, tagsstore, findByKey, findByValue }
+export const Tags: ITagsModule = {getTagStore, tagsstore, findByKey, findByValue, encryptAll }
 
 export default Tags
 
@@ -199,3 +298,17 @@ await Promise.all(
     })
 );
 
+key.subscribe((key: CryptoKey) => {
+    console.log("key changed", key);
+    currentKey = key; 
+
+    if(key)
+        tagStores.forEach(async ts => { 
+            ts.object = await ts.object.unlock(key);
+        })
+    else
+        tagStores.forEach(async ts => { 
+            ts.object = await ts.object.lock();
+        })
+
+})
