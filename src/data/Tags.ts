@@ -3,15 +3,15 @@ import { db } from "../lib/database"
 import { SvelteObjectStore } from "../lib/SvelteObjectStore"
 import Cryptography, { EncryptedData } from "../lib/cryptography"
 
-import { key } from '../components/Lock.svelte'
+import { key, hasPassword } from '../components/Lock.svelte'
 
 const _db = await db;
 
 const module_version = 1;
 const empty_hash = await Cryptography.sha256("", true) as string;
 
-
-let currentKey = undefined;
+let passwordSet = localStorage.getItem("haslock") != undefined;
+hasPassword.subscribe((val) => passwordSet = val);
 
 
 export class TagsError extends Error {
@@ -69,6 +69,7 @@ export class ITag {
     }
 
     async unlock(key: CryptoKey) {
+        console.log("unlock tag");
         if (this.data) {
             const tagdata = JSON.parse((new TextDecoder()).decode(await Cryptography.synckey.decrypt(
                 EncryptedData.fromBase64(this.data),
@@ -84,7 +85,8 @@ export class ITag {
     }
 
     async lock() {
-        if (this.data) {
+        console.log("lock tag");
+        if (this.data && passwordSet) {
             this.value = "*******";
             delete this.color
             delete this.version
@@ -142,40 +144,48 @@ function findByValue(value: string): Promise<TagStore> {
 
 async function encryptAll(key: CryptoKey, oldkey: CryptoKey = undefined) {
     let newtags = [];
+
     if (key && oldkey) {
-        await _db.tags.each(async tag => {
+        await _db.tags.each(async (tag) => {
             const tagdata = JSON.parse((new TextDecoder()).decode(await Cryptography.synckey.decrypt(
                 EncryptedData.fromBase64(tag.data),
                 oldkey
             )));
 
+            const data = (await Cryptography.synckey.encrypt(
+                (new TextEncoder()).encode(JSON.stringify({
+                    value: tagdata.value,
+                    color: tagdata.color,
+                    version: tagdata.version
+                }))
+                , key
+            )).toBase64() 
+
             newtags.push({
                 key: tag.key,
-                data: (await Cryptography.synckey.encrypt(
-                    (new TextEncoder()).encode(JSON.stringify({
-                        value: tagdata.value,
-                        color: tagdata.color,
-                        version: tagdata.version
-                    }))
-                    , key
-                )).toBase64()
+                value: "*******",
+                data
             });
         })
+
     }
     else if (key) {
         await _db.tags.each(async tag => {
             if(tag.data) throw new Error("tag already encrypted")
+            const data = (await Cryptography.synckey.encrypt(
+                (new TextEncoder()).encode(JSON.stringify({
+                    value: tag.value,
+                    color: tag.color,
+                    version: tag.version
+                }))
+                , key
+            )).toBase64()
             newtags.push({
                 key: tag.key,
-                data: (await Cryptography.synckey.encrypt(
-                    (new TextEncoder()).encode(JSON.stringify({
-                        value: tag.value,
-                        color: tag.color,
-                        version: tag.version
-                    }))
-                    , key
-                )).toBase64()
+                value: "*******",
+                data
             });
+
         })
     }
     else if(oldkey) { 
@@ -193,9 +203,14 @@ async function encryptAll(key: CryptoKey, oldkey: CryptoKey = undefined) {
                 version: tagdata.version
             });
         })
-    }
 
+
+    }
     if(newtags.length) await _db.tags.bulkPut(newtags)
+    newtags.forEach((nt) => { 
+        let store = tagStores.get(nt.key);
+        if (store) store.object = new ITag(nt);
+    })
 }
 
 class TagsStore implements Readable<TagStore[]> {
@@ -299,13 +314,11 @@ await Promise.all(
 );
 
 key.subscribe((key: CryptoKey) => {
-    console.log("key changed", key);
-    currentKey = key; 
-
     if(key)
         tagStores.forEach(async ts => { 
             ts.object = await ts.object.unlock(key);
         })
+
     else
         tagStores.forEach(async ts => { 
             ts.object = await ts.object.lock();

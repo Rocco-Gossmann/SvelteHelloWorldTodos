@@ -55,14 +55,24 @@
             }
             else {
                 await Tags.encryptAll(newkey, $key);
-                key.set(newkey);
                 hasPassword.set(true);
                 localStorage.setItem("haslock", "1");
+                key.set(undefined);
                 unlocked = false;
             }
             showUnlockDialog = false;
         }
 
+    }
+
+    const deleteLock = async () => {
+        if($key && confirm("this will remove the password protectedion from your todos. Continue?")) {
+            await Tags.encryptAll(undefined, $key);
+            localStorage.removeItem("haslock");
+            hasPassword.set(false);
+            key.set(undefined);
+            unlocked = true;
+        }
     }
 
 
@@ -71,6 +81,13 @@
 <a role="button" href={"#"} on:click|preventDefault={toggleLock} class="unlockbtn">
     <li class:fa-lock={!unlocked} class:fa-lock-open={unlocked} class="fa"></li>
 </a>
+
+{#if unlocked && $hasPassword}
+<a role="button" href={"#"} on:click|preventDefault={deleteLock} class="unlockbtn">
+    <li class="fa fa-shield-halved"></li>
+</a>
+{/if}
+
 
 {#if showUnlockDialog}
 <Modal>
