@@ -136,8 +136,8 @@ export function base64_decrypt(base64: string): ArrayBuffer {
 }
 
 interface ISyncKey {
-    encrypt: (data: ArrayBuffer, pass: string) => Promise<EncryptedData>
-    decrypt: (data: EncryptedData, pass: string) => Promise<ArrayBuffer>
+    encrypt: (data: ArrayBuffer, pass: string|CryptoKey) => Promise<EncryptedData>
+    decrypt: (data: EncryptedData, pass: string|CryptoKey) => Promise<ArrayBuffer>
 }
 
 interface IBase64 {
