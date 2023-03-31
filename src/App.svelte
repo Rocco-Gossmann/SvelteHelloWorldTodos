@@ -11,7 +11,8 @@
     import TodoList from './components/TodoList.svelte';
     import Toast from './lib/components/Toast.svelte';
     import ViteUpdatePrompt from './lib/components/ViteUpdatePrompt.svelte';
-    import Lock, {key, hasPassword} from './components/Lock.svelte';
+    import Lock from './components/Lock.svelte';
+    import {key, hasPassword} from './data/Lock';
 </script>
 
 <svelte:head>

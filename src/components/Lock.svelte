@@ -1,14 +1,11 @@
-<script context="module" lang="ts">
-    import { writable, type Writable } from 'svelte/store';
-    import Tags from '../data/Tags';
-    export const key: Writable<CryptoKey> = writable();
-    export const hasPassword: Writable<boolean> = writable(localStorage.getItem("haslock") != undefined);
-</script>
-
 <script lang="ts">
     import Modal from '../lib/components/Modal.svelte'
     import { toast } from '../lib/components/Toast.svelte';
     import { password2CryptoKey } from '../lib/cryptography';
+    import { key, hasPassword } from '../data/Lock';
+
+    import Tags from '../data/Tags';
+    import Todos from '../data/Todos';
 
     let unlocked = localStorage.getItem("haslock") == undefined;
     let showUnlockDialog = false;
@@ -55,6 +52,7 @@
             }
             else {
                 await Tags.encryptAll(newkey, $key);
+                await Todos.encryptAll(newkey, $key);
                 hasPassword.set(true);
                 localStorage.setItem("haslock", "1");
                 key.set(undefined);
@@ -68,6 +66,7 @@
     const deleteLock = async () => {
         if($key && confirm("this will remove the password protectedion from your todos. Continue?")) {
             await Tags.encryptAll(undefined, $key);
+            await Todos.encryptAll(undefined, $key);
             localStorage.removeItem("haslock");
             hasPassword.set(false);
             key.set(undefined);

@@ -3,7 +3,7 @@ import { db } from "../lib/database"
 import { SvelteObjectStore } from "../lib/SvelteObjectStore"
 import Cryptography, { EncryptedData } from "../lib/cryptography"
 
-import { key, hasPassword } from '../components/Lock.svelte'
+import { key, hasPassword } from './Lock';
 
 const _db = await db;
 

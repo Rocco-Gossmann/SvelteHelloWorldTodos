@@ -58,7 +58,7 @@
     import Todos from '../data/Todos';
     import TagInput from './TagInput.svelte';
     import TagEdit from './TagEdit.svelte';
-    import { key, hasPassword } from './Lock.svelte';
+    import { key, hasPassword } from '../data/Lock';
 
     $: visible = ($hasPassword && !$key) ? false : $tagfilter.length > 0;
 
