@@ -13,6 +13,8 @@ const empty_hash = await Cryptography.sha256("", true) as string;
 let passwordSet = localStorage.getItem("haslock") != undefined;
 hasPassword.subscribe((val) => passwordSet = val);
 
+let currentKey: CryptoKey;
+
 
 export class TagsError extends Error {
     static readonly EMPTY_TAG_KEY = "the given value resulted in an empty tag-key";
@@ -64,8 +66,27 @@ export class ITag {
         tagsstore.refresh();
     }
 
-    insert(): Promise<void> {
-        return _db.tags.put(this).then(() => tagsstore.refresh());
+    async insert(): Promise<void> {
+
+        let dat = {}
+
+        if (currentKey) {
+            dat = {
+                key: this.key,
+                data: await encryptITag(currentKey, this),
+                value: "*******"
+            }
+        }
+        else { 
+            dat = {
+                key: this.key,
+                value: this.value,
+                color: this.color,
+                version: this.version
+            }
+        }
+
+        return _db.tags.put(dat).then(() => tagsstore.refresh());
     }
 
     async unlock(key: CryptoKey) {
@@ -104,6 +125,10 @@ export class TagStore extends SvelteObjectStore<ITag> {
             tagStores.set(tag.key, this);
             return () => tagStores.delete(tag.key);
         })
+
+        if (currentKey) {
+            this.object.unlock(currentKey).then( () => this.notifiySubscribers() )
+        }
     }
 
     notifiySubscribers() { this.set(this.object); }
@@ -152,14 +177,7 @@ async function encryptAll(key: CryptoKey, oldkey: CryptoKey = undefined) {
                 oldkey
             )));
 
-            const data = (await Cryptography.synckey.encrypt(
-                (new TextEncoder()).encode(JSON.stringify({
-                    value: tagdata.value,
-                    color: tagdata.color,
-                    version: tagdata.version
-                }))
-                , key
-            )).toBase64() 
+            const data = await encryptITag(key, tagdata);
 
             newtags.push({
                 key: tag.key,
@@ -172,14 +190,8 @@ async function encryptAll(key: CryptoKey, oldkey: CryptoKey = undefined) {
     else if (key) {
         await _db.tags.each(async tag => {
             if(tag.data) throw new Error("tag already encrypted")
-            const data = (await Cryptography.synckey.encrypt(
-                (new TextEncoder()).encode(JSON.stringify({
-                    value: tag.value,
-                    color: tag.color,
-                    version: tag.version
-                }))
-                , key
-            )).toBase64()
+            const data = await encryptITag(key, tag);
+
             newtags.push({
                 key: tag.key,
                 value: "*******",
@@ -275,6 +287,16 @@ async function table() { return (await db).tags }
 
 function getKey(value: string) { return (value||"").trim().toLowerCase() }
 
+async function encryptITag(key: CryptoKey, tag: Partial<ITag>) {
+    return (await Cryptography.synckey.encrypt(
+        (new TextEncoder()).encode(JSON.stringify({
+            value: tag.value,
+            color: tag.color,
+            version: tag.version
+        }))
+        , key
+    )).toBase64()
+}
 
 
 //==============================================================================
@@ -314,6 +336,7 @@ await Promise.all(
 );
 
 key.subscribe((key: CryptoKey) => {
+    currentKey = key;
     if(key)
         tagStores.forEach(async ts => { 
             ts.object = await ts.object.unlock(key);
