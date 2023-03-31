@@ -58,8 +58,9 @@
     import Todos from '../data/Todos';
     import TagInput from './TagInput.svelte';
     import TagEdit from './TagEdit.svelte';
+    import { key, hasPassword } from './Lock.svelte';
 
-    $: visible = $tagfilter.length > 0;
+    $: visible = ($hasPassword && !$key) ? false : $tagfilter.length > 0;
 
     let tagInput = "";
 
@@ -80,32 +81,30 @@
 <a role="button" href={"#"} on:click|preventDefault={() => visible = !visible }>Tags</a>
 
 {#if visible}
-
 <TagInput bind:value={tagInput} on:submit={onAddTag} />
 
 <TagEdit />
 
-<section class="taglist" class:open={visible} transition:slide|local>
+<section class="taglist" class:open={visible} transition:slide>
 
-{#if $tagfilter.length}
+    {#if $tagfilter.length}
 
-    {#each $tagfilter as tag}
-        <Tag 
-            key={tag} 
-            on:remove={ (ev) => removeTag(ev.detail) } 
-            on:click={ (ev) => {
-                console.log(ev.detail, $edittag, edittag)
-                edittag.set(edittag && $edittag==ev.detail ? undefined : ev.detail) 
-            }}
-        />
-    {/each}
+        {#each $tagfilter as tag}
+            <Tag 
+                key={tag} 
+                on:remove={ (ev) => removeTag(ev.detail) } 
+                on:click={ (ev) => {
+                    console.log(ev.detail, $edittag, edittag)
+                    edittag.set(edittag && $edittag==ev.detail ? undefined : ev.detail) 
+                }}
+            />
+        {/each}
 
-{:else}
-    No Tags yet
-{/if}
+    {:else}
+        No Tags yet
+    {/if}
 
 </section>
-
 {/if}
 
 

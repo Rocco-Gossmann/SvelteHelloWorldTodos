@@ -49,7 +49,7 @@
 </script>
 {#if visible}
 <form class="taginput" class:open={visible} 
-    transition:slide 
+    transition:slide
     on:submit|preventDefault={onSubmit}
 >
     <input type="text" bind:value={value} list="available_tags" autocomplete=""/>

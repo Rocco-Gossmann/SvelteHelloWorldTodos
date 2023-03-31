@@ -20,6 +20,7 @@ export class TagsError extends Error {
     static readonly EMPTY_TAG_KEY = "the given value resulted in an empty tag-key";
     static readonly NO_TAG_FOR_KEY = "a tag for the given Key or Value does not exist in the Database";
     static readonly INVALID_CONSTRUCT = "construct must be provided with either 'key' or 'value'";
+    static readonly NEEDS_UNLOCK = "You need to unlock the app with your set password first.";
 }
 
 export class ITag {

@@ -11,7 +11,7 @@
     import TodoList from './components/TodoList.svelte';
     import Toast from './lib/components/Toast.svelte';
     import ViteUpdatePrompt from './lib/components/ViteUpdatePrompt.svelte';
-    import Lock from './components/Lock.svelte';
+    import Lock, {key, hasPassword} from './components/Lock.svelte';
 </script>
 
 <svelte:head>
@@ -29,15 +29,20 @@
 
 
 <Lock />
-<TagFilter />
 
-<h1 class="text-center">Todos</h1>
+{#if $hasPassword && !$key}
+    please enter your password first
+{:else}
+    <TagFilter />
 
-<TodoInput />
+    <h1 class="text-center">Todos</h1>
 
-<TodoList />
+    <TodoInput />
 
-<TagDataList />
+    <TodoList />
+
+    <TagDataList />
+{/if}
 
 <Toast />
 <ViteUpdatePrompt />

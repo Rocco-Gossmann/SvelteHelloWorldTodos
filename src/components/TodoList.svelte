@@ -2,7 +2,6 @@
 
     import { slide, crossfade } from 'svelte/transition'
     import {flip} from 'svelte/animate'
-
     import { todos } from "../data/Todos";
     import Todo from './Todo.svelte';
 
@@ -17,8 +16,8 @@
 
 {#each openList as todo (todo.id)}
     <div animate:flip={{duration}} 
-    in:crossReceive={{key: todo.id}} 
-    out:crossSend={{key: todo.id}} 
+    in:crossReceive|local={{key: todo.id}} 
+    out:crossSend|local={{key: todo.id}} 
     > 
     <Todo { todo } />
     </div>
@@ -27,8 +26,8 @@
 <h3>Done:</h3>
 {#each doneList as todo (todo.id)}
     <div animate:flip={{duration}} 
-    in:crossReceive={{key: todo.id}} 
-    out:crossSend={{key: todo.id}} 
+    in:crossReceive|local={{key: todo.id}} 
+    out:crossSend|local={{key: todo.id}} 
     > 
     <Todo { todo } />
     </div>
