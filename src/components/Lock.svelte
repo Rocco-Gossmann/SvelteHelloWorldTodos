@@ -15,7 +15,6 @@
     let passwordInput = "";
 
     const toggleLock = () => {
-        console.log("toggle Lock")
         if(unlocked) {
             if($hasPassword) {
                 key.set(undefined);
@@ -27,7 +26,6 @@
             }
         }
         else {
-            toast("TODO clear password", "alert", 2)
             unlockdialog_message = "Enter your password";
             showUnlockDialog = true;
         }
@@ -43,12 +41,14 @@
             unlocked = false;
             key.set(undefined);
             showUnlockDialog = false;
+            passwordInput = "";
         }
         else {
             const newkey = await password2CryptoKey(passwordInput)
             if($hasPassword) {
                 unlocked = true;
                 key.set(newkey);
+                passwordInput = "";
             }
             else {
                 await Tags.encryptAll(newkey, $key);
@@ -57,6 +57,7 @@
                 localStorage.setItem("haslock", "1");
                 key.set(undefined);
                 unlocked = false;
+                passwordInput = "";
             }
             showUnlockDialog = false;
         }
@@ -71,6 +72,7 @@
             hasPassword.set(false);
             key.set(undefined);
             unlocked = true;
+            passwordInput = "";
         }
     }
 
