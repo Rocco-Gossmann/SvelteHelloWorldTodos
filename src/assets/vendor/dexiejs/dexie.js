@@ -4,7 +4,7 @@
  *
  * By David Fahlander, david.fahlander@gmail.com
  *
- * Version 3.2.3, Mon Jan 23 2023
+ * Version 4.0.1-alpha.10, Wed Mar 29 2023
  *
  * https://dexie.org
  *
@@ -29,6 +29,19 @@
     OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
     PERFORMANCE OF THIS SOFTWARE.
     ***************************************************************************** */
+    var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    function __extends(d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    }
     var __assign = function() {
         __assign = Object.assign || function __assign(t) {
             for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -219,7 +232,7 @@
     function flatten(a) {
         return concat.apply([], a);
     }
-    var intrinsicTypeNames = "Boolean,String,Date,RegExp,Blob,File,FileList,FileSystemFileHandle,ArrayBuffer,DataView,Uint8ClampedArray,ImageBitmap,ImageData,Map,Set,CryptoKey"
+    var intrinsicTypeNames = "Boolean,String,Date,RegExp,Blob,File,FileList,FileSystemFileHandle,FileSystemDirectoryHandle,ArrayBuffer,DataView,Uint8ClampedArray,ImageBitmap,ImageData,Map,Set,CryptoKey"
         .split(',').concat(flatten([8, 16, 32, 64].map(function (num) { return ["Int", "Uint", "Float"].map(function (t) { return t + num + "Array"; }); }))).filter(function (t) { return _global[t]; });
     var intrinsicTypes = intrinsicTypeNames.map(function (t) { return _global[t]; });
     arrayToObject(intrinsicTypeNames, function (x) { return [x, true]; });
@@ -412,7 +425,7 @@
         this.name = "BulkError";
         this.failures = Object.keys(failures).map(function (pos) { return failures[pos]; });
         this.failuresByPos = failures;
-        this.message = getMultiErrorMessage(msg, failures);
+        this.message = getMultiErrorMessage(msg, this.failures);
     }
     derive(BulkError).from(DexieError);
     var errnames = errorList.reduce(function (obj, name) { return (obj[name] = name + "Error", obj); }, {});
@@ -427,11 +440,11 @@
                 this.inner = null;
             }
             else if (typeof msgOrInner === 'string') {
-                this.message = "" + msgOrInner + (!inner ? '' : '\n ' + inner);
+                this.message = "".concat(msgOrInner).concat(!inner ? '' : '\n ' + inner);
                 this.inner = inner || null;
             }
             else if (typeof msgOrInner === 'object') {
-                this.message = msgOrInner.name + " " + msgOrInner.message;
+                this.message = "".concat(msgOrInner.name, " ").concat(msgOrInner.message);
                 this.inner = msgOrInner;
             }
         }
@@ -1243,7 +1256,7 @@
                         catch (_) { }
                 }
                 if (debug && event && !event.defaultPrevented) {
-                    console.warn("Unhandled rejection: " + (err.stack || err));
+                    console.warn("Unhandled rejection: ".concat(err.stack || err));
                 }
             }
             catch (e) { }
@@ -1287,7 +1300,7 @@
         }
     }
 
-    var DEXIE_VERSION = '3.2.3';
+    var DEXIE_VERSION = '4.0.1-alpha.10';
     var maxString = String.fromCharCode(65535);
     var minKey = -Infinity;
     var INVALID_KEY_ARGUMENT = "Invalid key provided. Keys must be of type string, number, Date or Array<string | number | Date>.";
@@ -1329,6 +1342,86 @@
             : function (obj) { return obj; };
     }
 
+    function Entity() {
+        throw exceptions.Type();
+    }
+
+    function cmp(a, b) {
+        try {
+            var ta = type(a);
+            var tb = type(b);
+            if (ta !== tb) {
+                if (ta === 'Array')
+                    return 1;
+                if (tb === 'Array')
+                    return -1;
+                if (ta === 'binary')
+                    return 1;
+                if (tb === 'binary')
+                    return -1;
+                if (ta === 'string')
+                    return 1;
+                if (tb === 'string')
+                    return -1;
+                if (ta === 'Date')
+                    return 1;
+                if (tb !== 'Date')
+                    return NaN;
+                return -1;
+            }
+            switch (ta) {
+                case 'number':
+                case 'Date':
+                case 'string':
+                    return a > b ? 1 : a < b ? -1 : 0;
+                case 'binary': {
+                    return compareUint8Arrays(getUint8Array(a), getUint8Array(b));
+                }
+                case 'Array':
+                    return compareArrays(a, b);
+            }
+        }
+        catch (_a) { }
+        return NaN;
+    }
+    function compareArrays(a, b) {
+        var al = a.length;
+        var bl = b.length;
+        var l = al < bl ? al : bl;
+        for (var i = 0; i < l; ++i) {
+            var res = cmp(a[i], b[i]);
+            if (res !== 0)
+                return res;
+        }
+        return al === bl ? 0 : al < bl ? -1 : 1;
+    }
+    function compareUint8Arrays(a, b) {
+        var al = a.length;
+        var bl = b.length;
+        var l = al < bl ? al : bl;
+        for (var i = 0; i < l; ++i) {
+            if (a[i] !== b[i])
+                return a[i] < b[i] ? -1 : 1;
+        }
+        return al === bl ? 0 : al < bl ? -1 : 1;
+    }
+    function type(x) {
+        var t = typeof x;
+        if (t !== 'object')
+            return t;
+        if (ArrayBuffer.isView(x))
+            return 'binary';
+        var tsTag = toStringTag(x);
+        return tsTag === 'ArrayBuffer' ? 'binary' : tsTag;
+    }
+    function getUint8Array(a) {
+        if (a instanceof Uint8Array)
+            return a;
+        if (ArrayBuffer.isView(a))
+            return new Uint8Array(a.buffer, a.byteOffset, a.byteLength);
+        return new Uint8Array(a);
+    }
+
     var Table =  (function () {
         function Table() {
         }
@@ -1366,7 +1459,7 @@
             if (typeof indexOrCrit === 'string')
                 return new this.db.WhereClause(this, indexOrCrit);
             if (isArray(indexOrCrit))
-                return new this.db.WhereClause(this, "[" + indexOrCrit.join('+') + "]");
+                return new this.db.WhereClause(this, "[".concat(indexOrCrit.join('+'), "]"));
             var keyPaths = keys(indexOrCrit);
             if (keyPaths.length === 1)
                 return this
@@ -1382,17 +1475,12 @@
                     .where(compoundIndex.name)
                     .equals(compoundIndex.keyPath.map(function (kp) { return indexOrCrit[kp]; }));
             if (!compoundIndex && debug)
-                console.warn("The query " + JSON.stringify(indexOrCrit) + " on " + this.name + " would benefit of a " +
-                    ("compound index [" + keyPaths.join('+') + "]"));
+                console.warn("The query ".concat(JSON.stringify(indexOrCrit), " on ").concat(this.name, " would benefit of a ") +
+                    "compound index [".concat(keyPaths.join('+'), "]"));
             var idxByName = this.schema.idxByName;
             var idb = this.db._deps.indexedDB;
             function equals(a, b) {
-                try {
-                    return idb.cmp(a, b) === 0;
-                }
-                catch (e) {
-                    return false;
-                }
+                return idb.cmp(a, b) === 0;
             }
             var _a = keyPaths.reduce(function (_a, keyPath) {
                 var prevIndex = _a[0], prevFilterFn = _a[1];
@@ -1439,20 +1527,40 @@
         };
         Table.prototype.orderBy = function (index) {
             return new this.db.Collection(new this.db.WhereClause(this, isArray(index) ?
-                "[" + index.join('+') + "]" :
+                "[".concat(index.join('+'), "]") :
                 index));
         };
         Table.prototype.reverse = function () {
             return this.toCollection().reverse();
         };
         Table.prototype.mapToClass = function (constructor) {
+            var _a = this, db = _a.db, tableName = _a.name;
             this.schema.mappedClass = constructor;
+            if (constructor.prototype instanceof Entity) {
+                constructor =  (function (_super) {
+                    __extends(class_1, _super);
+                    function class_1() {
+                        return _super !== null && _super.apply(this, arguments) || this;
+                    }
+                    Object.defineProperty(class_1.prototype, "db", {
+                        get: function () { return db; },
+                        enumerable: false,
+                        configurable: true
+                    });
+                    class_1.prototype.table = function () { return tableName; };
+                    return class_1;
+                }(constructor));
+            }
+            var inheritedProps = new Set();
+            for (var proto = constructor.prototype; proto; proto = getProto(proto)) {
+                Object.getOwnPropertyNames(proto).forEach(function (propName) { return inheritedProps.add(propName); });
+            }
             var readHook = function (obj) {
                 if (!obj)
                     return obj;
                 var res = Object.create(constructor.prototype);
                 for (var m in obj)
-                    if (hasOwn(obj, m))
+                    if (!inheritedProps.has(m))
                         try {
                             res[m] = obj[m];
                         }
@@ -1574,7 +1682,7 @@
                     var result = wantResults ? results : lastResult;
                     if (numFailures === 0)
                         return result;
-                    throw new BulkError(_this.name + ".bulkAdd(): " + numFailures + " of " + numObjects + " operations failed", failures);
+                    throw new BulkError("".concat(_this.name, ".bulkAdd(): ").concat(numFailures, " of ").concat(numObjects, " operations failed"), failures);
                 });
             });
         };
@@ -1599,7 +1707,68 @@
                     var result = wantResults ? results : lastResult;
                     if (numFailures === 0)
                         return result;
-                    throw new BulkError(_this.name + ".bulkPut(): " + numFailures + " of " + numObjects + " operations failed", failures);
+                    throw new BulkError("".concat(_this.name, ".bulkPut(): ").concat(numFailures, " of ").concat(numObjects, " operations failed"), failures);
+                });
+            });
+        };
+        Table.prototype.bulkUpdate = function (keysAndChanges) {
+            var _this = this;
+            var coreTable = this.core;
+            var keys = keysAndChanges.map(function (entry) { return entry.key; });
+            var changeSpecs = keysAndChanges.map(function (entry) { return entry.changes; });
+            var offsetMap = [];
+            return this._trans('readwrite', function (trans) {
+                return coreTable.getMany({ trans: trans, keys: keys, cache: 'clone' }).then(function (objs) {
+                    var resultKeys = [];
+                    var resultObjs = [];
+                    keysAndChanges.forEach(function (_a, idx) {
+                        var key = _a.key, changes = _a.changes;
+                        var obj = objs[idx];
+                        if (obj) {
+                            for (var _i = 0, _b = Object.keys(changes); _i < _b.length; _i++) {
+                                var keyPath = _b[_i];
+                                var value = changes[keyPath];
+                                if (keyPath === _this.schema.primKey.keyPath) {
+                                    if (cmp(value, key) !== 0) {
+                                        throw new exceptions.Constraint("Cannot update primary key in bulkUpdate()");
+                                    }
+                                }
+                                else {
+                                    setByKeyPath(obj, keyPath, value);
+                                }
+                            }
+                            offsetMap.push(idx);
+                            resultKeys.push(key);
+                            resultObjs.push(obj);
+                        }
+                    });
+                    var numEntries = resultKeys.length;
+                    return coreTable
+                        .mutate({
+                        trans: trans,
+                        type: 'put',
+                        keys: resultKeys,
+                        values: resultObjs,
+                        updates: {
+                            keys: keys,
+                            changeSpecs: changeSpecs
+                        }
+                    })
+                        .then(function (_a) {
+                        var numFailures = _a.numFailures, failures = _a.failures;
+                        if (numFailures === 0)
+                            return numEntries;
+                        for (var _i = 0, _b = Object.keys(failures); _i < _b.length; _i++) {
+                            var offset = _b[_i];
+                            var mappedOffset = offsetMap[Number(offset)];
+                            if (mappedOffset != null) {
+                                var failure = failures[offset];
+                                delete failures[offset];
+                                failures[mappedOffset] = failure;
+                            }
+                        }
+                        throw new BulkError("".concat(_this.name, ".bulkUpdate(): ").concat(numFailures, " of ").concat(numEntries, " operations failed"), failures);
+                    });
                 });
             });
         };
@@ -1612,7 +1781,7 @@
                 var numFailures = _a.numFailures, lastResult = _a.lastResult, failures = _a.failures;
                 if (numFailures === 0)
                     return lastResult;
-                throw new BulkError(_this.name + ".bulkDelete(): " + numFailures + " of " + numKeys + " operations failed", failures);
+                throw new BulkError("".concat(_this.name, ".bulkDelete(): ").concat(numFailures, " of ").concat(numKeys, " operations failed"), failures);
             });
         };
         return Table;
@@ -1779,82 +1948,6 @@
                 });
             }
         });
-    }
-
-    function cmp(a, b) {
-        try {
-            var ta = type(a);
-            var tb = type(b);
-            if (ta !== tb) {
-                if (ta === 'Array')
-                    return 1;
-                if (tb === 'Array')
-                    return -1;
-                if (ta === 'binary')
-                    return 1;
-                if (tb === 'binary')
-                    return -1;
-                if (ta === 'string')
-                    return 1;
-                if (tb === 'string')
-                    return -1;
-                if (ta === 'Date')
-                    return 1;
-                if (tb !== 'Date')
-                    return NaN;
-                return -1;
-            }
-            switch (ta) {
-                case 'number':
-                case 'Date':
-                case 'string':
-                    return a > b ? 1 : a < b ? -1 : 0;
-                case 'binary': {
-                    return compareUint8Arrays(getUint8Array(a), getUint8Array(b));
-                }
-                case 'Array':
-                    return compareArrays(a, b);
-            }
-        }
-        catch (_a) { }
-        return NaN;
-    }
-    function compareArrays(a, b) {
-        var al = a.length;
-        var bl = b.length;
-        var l = al < bl ? al : bl;
-        for (var i = 0; i < l; ++i) {
-            var res = cmp(a[i], b[i]);
-            if (res !== 0)
-                return res;
-        }
-        return al === bl ? 0 : al < bl ? -1 : 1;
-    }
-    function compareUint8Arrays(a, b) {
-        var al = a.length;
-        var bl = b.length;
-        var l = al < bl ? al : bl;
-        for (var i = 0; i < l; ++i) {
-            if (a[i] !== b[i])
-                return a[i] < b[i] ? -1 : 1;
-        }
-        return al === bl ? 0 : al < bl ? -1 : 1;
-    }
-    function type(x) {
-        var t = typeof x;
-        if (t !== 'object')
-            return t;
-        if (ArrayBuffer.isView(x))
-            return 'binary';
-        var tsTag = toStringTag(x);
-        return tsTag === 'ArrayBuffer' ? 'binary' : tsTag;
-    }
-    function getUint8Array(a) {
-        if (a instanceof Uint8Array)
-            return a;
-        if (ArrayBuffer.isView(a))
-            return new Uint8Array(a.buffer, a.byteOffset, a.byteLength);
-        return new Uint8Array(a);
     }
 
     var Collection =  (function () {
@@ -2646,14 +2739,13 @@
                 index: index === ":id" ? null : index,
                 or: orCollection
             };
-            var indexedDB = db._deps.indexedDB;
-            if (!indexedDB)
-                throw new exceptions.MissingAPI();
-            this._cmp = this._ascending = indexedDB.cmp.bind(indexedDB);
-            this._descending = function (a, b) { return indexedDB.cmp(b, a); };
-            this._max = function (a, b) { return indexedDB.cmp(a, b) > 0 ? a : b; };
-            this._min = function (a, b) { return indexedDB.cmp(a, b) < 0 ? a : b; };
+            this._cmp = this._ascending = cmp;
+            this._descending = function (a, b) { return cmp(b, a); };
+            this._max = function (a, b) { return cmp(a, b) > 0 ? a : b; };
+            this._min = function (a, b) { return cmp(a, b) < 0 ? a : b; };
             this._IDBKeyRange = db._deps.IDBKeyRange;
+            if (!this._IDBKeyRange)
+                throw new exceptions.MissingAPI();
         });
     }
 
@@ -2946,7 +3038,7 @@
             ":id" :
             typeof keyPath === 'string' ?
                 keyPath :
-                "[" + keyPath.join('+') + "]";
+                "[".concat(keyPath.join('+'), "]");
     }
     function createDBCore(db, IdbKeyRange, tmpTrans) {
         function extractSchema(db, trans) {
@@ -3280,7 +3372,7 @@
             table: function (name) {
                 var result = tableMap[name];
                 if (!result)
-                    throw new Error("Table '" + name + "' not found");
+                    throw new Error("Table '".concat(name, "' not found"));
                 return tableMap[name];
             },
             MIN_KEY: -Infinity,
@@ -3753,7 +3845,7 @@
                         req.result.close();
                         var delreq = indexedDB.deleteDatabase(dbName);
                         delreq.onsuccess = delreq.onerror = wrap(function () {
-                            reject(new exceptions.NoSuchDatabase("Database " + dbName + " doesnt exist"));
+                            reject(new exceptions.NoSuchDatabase("Database ".concat(dbName, " doesnt exist")));
                         });
                     }
                     else {
@@ -4419,7 +4511,7 @@
                             var trans = req.trans;
                             var mutatedParts = trans.mutatedParts || (trans.mutatedParts = {});
                             var getRangeSet = function (indexName) {
-                                var part = "idb://" + dbName + "/" + tableName + "/" + indexName;
+                                var part = "idb://".concat(dbName, "/").concat(tableName, "/").concat(indexName);
                                 return (mutatedParts[part] ||
                                     (mutatedParts[part] = new RangeSet()));
                             };
@@ -4480,7 +4572,7 @@
                             var subscr = PSD.subscr;
                             if (subscr) {
                                 var getRangeSet = function (indexName) {
-                                    var part = "idb://" + dbName + "/" + tableName + "/" + indexName;
+                                    var part = "idb://".concat(dbName, "/").concat(tableName, "/").concat(indexName);
                                     return (subscr[part] ||
                                         (subscr[part] = new RangeSet()));
                                 };
@@ -4652,16 +4744,16 @@
             this.WhereClause = createWhereClauseConstructor(this);
             this.on("versionchange", function (ev) {
                 if (ev.newVersion > 0)
-                    console.warn("Another connection wants to upgrade database '" + _this.name + "'. Closing db now to resume the upgrade.");
+                    console.warn("Another connection wants to upgrade database '".concat(_this.name, "'. Closing db now to resume the upgrade."));
                 else
-                    console.warn("Another connection wants to delete database '" + _this.name + "'. Closing db now to resume the delete request.");
+                    console.warn("Another connection wants to delete database '".concat(_this.name, "'. Closing db now to resume the delete request."));
                 _this.close();
             });
             this.on("blocked", function (ev) {
                 if (!ev.newVersion || ev.newVersion < ev.oldVersion)
-                    console.warn("Dexie.delete('" + _this.name + "') was blocked");
+                    console.warn("Dexie.delete('".concat(_this.name, "') was blocked"));
                 else
-                    console.warn("Upgrade '" + _this.name + "' blocked by other connection holding version " + ev.oldVersion / 10);
+                    console.warn("Upgrade '".concat(_this.name, "' blocked by other connection holding version ").concat(ev.oldVersion / 10));
             });
             this._maxKey = getMaxKey(options.IDBKeyRange);
             this._createTransaction = function (mode, storeNames, dbschema, parentTransaction) { return new _this.Transaction(mode, storeNames, dbschema, _this._options.chromeTransactionDurability, parentTransaction); };
@@ -4875,7 +4967,7 @@
         };
         Dexie.prototype.table = function (tableName) {
             if (!hasOwn(this._allTables, tableName)) {
-                throw new exceptions.InvalidTable("Table " + tableName + " does not exist");
+                throw new exceptions.InvalidTable("Table ".concat(tableName, " does not exist"));
             }
             return this._allTables[tableName];
         };
@@ -4904,6 +4996,17 @@
             mergeRanges(rangeSet, newSet[part]);
         });
         return target;
+    }
+
+    var domDeps;
+    try {
+        domDeps = {
+            indexedDB: _global.indexedDB || _global.mozIndexedDB || _global.webkitIndexedDB || _global.msIndexedDB,
+            IDBKeyRange: _global.IDBKeyRange || _global.webkitIDBKeyRange
+        };
+    }
+    catch (e) {
+        domDeps = { indexedDB: null, IDBKeyRange: null };
     }
 
     function liveQuery(querier) {
@@ -4949,8 +5052,12 @@
                 }
             };
             var doQuery = function () {
-                if (querying || closed)
+                if (querying ||
+                    closed ||
+                    !domDeps.indexedDB)
+                 {
                     return;
+                }
                 accumMuts = {};
                 var subscr = {};
                 var ret = execute(subscr);
@@ -4961,8 +5068,9 @@
                 querying = true;
                 Promise.resolve(ret).then(function (result) {
                     querying = false;
-                    if (closed)
+                    if (closed) {
                         return;
+                    }
                     if (shouldNotify()) {
                         doQuery();
                     }
@@ -4972,25 +5080,16 @@
                         observer.next && observer.next(result);
                     }
                 }, function (err) {
-                    querying = false;
-                    observer.error && observer.error(err);
-                    subscription.unsubscribe();
+                    if (!['DatabaseClosedError', 'AbortError'].includes(err === null || err === void 0 ? void 0 : err.name)) {
+                        querying = false;
+                        observer.error && observer.error(err);
+                        subscription.unsubscribe();
+                    }
                 });
             };
             doQuery();
             return subscription;
         });
-    }
-
-    var domDeps;
-    try {
-        domDeps = {
-            indexedDB: _global.indexedDB || _global.mozIndexedDB || _global.webkitIndexedDB || _global.msIndexedDB,
-            IDBKeyRange: _global.IDBKeyRange || _global.webkitIDBKeyRange
-        };
-    }
-    catch (e) {
-        domDeps = { indexedDB: null, IDBKeyRange: null };
     }
 
     var Dexie = Dexie$1;
@@ -5178,6 +5277,8 @@
         __proto__: null,
         Dexie: Dexie$1,
         liveQuery: liveQuery,
+        Entity: Entity,
+        cmp: cmp,
         'default': Dexie$1,
         RangeSet: RangeSet,
         mergeRanges: mergeRanges,

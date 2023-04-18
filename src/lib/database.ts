@@ -1,13 +1,9 @@
-//@ts-nocheck
-export const db = new Promise<Dexie>((resolve, reject) => {
-    if (window?.Dexie) {
-        const db = new window.Dexie("helloworldtodos", {})
-        db.version(2).stores({
-            tags: "&key",
-            todos: "++id,*tags",
-        })
+import Dexie from "../assets/vendor/dexiejs/dexie"
 
-        resolve(db)
-    }
-    else reject(new Error("Dexie is not loaded in window"))
+export const db = new Dexie("helloworldtodos", {});
+db.version(2).stores({
+    tags: "&key",
+    todos: "++id,*tags",
 })
+
+export default db
