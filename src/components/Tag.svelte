@@ -1,46 +1,39 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import Tags, {type TagStore, ITag } from "../data/Tags";
+    import { TagManager, TagInstanceStore, TagInstance } from "../data/TagManager";
 
-    export let tagstore: TagStore|undefined = undefined;
-    export let tag: ITag|undefined = undefined;
+    export let tagstore: TagInstanceStore = undefined;
     export let value = "";
     export let key = "";
 
     export let noremove = false;
     export let noclick = false;
 
-    let oTag: TagStore;
     const on = createEventDispatcher()
 
-    $: if(tagstore) oTag = tagstore
-    
-    else if(tag)  oTag = Tags.getTagStore(tag); 
-
-    else if(key) {
-        try {
-            Tags.findByKey(key).then( t => oTag = t );
-        } catch( err ) { console.error( err ); oTag = undefined; }
-    }
-
-    else if( value ) {
-        try {
-            Tags.findByValue(value).then( t => oTag = t );
-        } catch( err ) { console.error( err ); oTag = undefined; }
+    $: if(!tagstore) {
+        if(key) {
+            TagManager.getInstanceByPK(key).then( store => tagstore = store );
+        }
+        else if(value) { 
+            TagInstance.generatePrimaryKey(value)
+                .then( key => TagManager.getInstanceByPK(key))
+                .then( store => tagstore = store );
+        }
     }
 
 </script>
 
-{#if oTag}
- <span class="tag" style={`--tagcolor: ${$oTag.color}`}>
+{#if tagstore}
+ <span class="tag" style={`--tagcolor: ${$tagstore.color}`}>
     {#if noclick}
-        {$oTag.value}
+        {$tagstore.value}
     {:else}
-        <a href={'#'} on:click|preventDefault={() => on("click", oTag)}>{$oTag.value}</a>
+        <a href={'#'} on:click|preventDefault={() => on("click", tagstore)}>{$tagstore.value}</a>
     {/if}
     {#if !noremove}
     <a href={'#'} class="fa fa-times" 
-        on:click|preventDefault={() => on("remove", oTag)}>&nbsp;</a>
+        on:click|preventDefault={() => on("remove", tagstore)}>&nbsp;</a>
     {/if}
  </span>
  {/if}

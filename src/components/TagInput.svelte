@@ -1,50 +1,32 @@
 <script lang="ts">
     import { slide } from 'svelte/transition'
     import { createEventDispatcher } from 'svelte';
-    import Tags, { ITag, TagsError, type TagStore } from '../data/Tags';
     import { toast } from '../lib/components/Toast.svelte';
+
+    import {TagManager, TagInstance, TagError} from '../data/TagManager';
+
+    import { key } from '../data/Lock'
+    import { isError } from '../lib/utils';
 
     const on = createEventDispatcher();
 
     export let visible = true;
     export let value = "";
     export let noautocreate = false;
-    let oTag: TagStore;
 
-    const onSubmit = async () => {
+    const onSubmit = () => {
+        TagInstance.generatePrimaryKey(value)
+            .then( key => TagManager.createNewEntry({ value, key }, $key) )
+            .then( tag => on("submit", tag) )
 
-        try { oTag = await Tags.findByValue(value); } 
-        catch ( err ) { 
-            if(err instanceof TagsError && err.message == TagsError.NO_TAG_FOR_KEY) {
-                try { 
-                    if(noautocreate) {
-                        toast("tag is unknown", "alert", 2); 
-                        return
-                    } 
-                    else {
-                        const tag = await ITag.createNew(value);
-                        await tag.insert();
-                        oTag = Tags.getTagStore(tag);
-                    }
+            .catch( err  => {
+                if(isError(err) && err.message == TagError.EMPTY_TAG_KEY)
+                    toast("can't submit an empty Tag", "alert", 2);
+                else {
+                    console.error( err )
+                    toast("ERROR: see console", "alert", 2);
                 }
-                catch( err ) {
-                    if(err instanceof TagsError && err.message == TagsError.EMPTY_TAG_KEY) 
-                        toast("can't submit an empty Tag", "alert", 2);
-                    else {
-                        console.error( err )
-                        toast("ERROR: see console", "alert", 2);
-                    }
-                    return
-                }
-            } 
-            else {
-                console.error( err )
-                toast("ERROR: see console", "alert", 2);
-                return
-            }
-        }
-        
-        on("submit", oTag);
+            })
     }
 </script>
 {#if visible}

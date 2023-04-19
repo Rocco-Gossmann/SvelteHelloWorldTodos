@@ -1,19 +1,25 @@
 <script context="module" lang="ts">
-    import { isArray } from '../lib/utils';
     import { writable } from 'svelte/store';
+
     import { edittag } from './TagEdit.svelte';
+
+	import type { TagInstance, TagInstanceStore } from '../data/TagManager';
 
     export const tagfilter = writable<string[]>([]);
 
-    export function addTag(tag: ITag) {
-        tagfilter.update( lst => {
-            if(lst.indexOf(tag.key) == -1) {
-                lst.push(tag.key);
-            }
-            return lst;
-        });
+    export function addTag(tag: TagInstance) {
+        console.log(tag);
+        tag.getKey()
+            .then( key => tagfilter.update( lst => {
+                if(lst.indexOf(key) == -1) {
+                    lst.push(key);
+                }
+
+                return lst;
+            }))
     }
 
+    /*
 
     try {
         let filter = localStorage.getItem("tagfilter");
@@ -42,7 +48,8 @@
         }
 
     }
-    catch( err ) { /* NOP */ }
+    catch( err ) { /* NOP * / }
+    */
 
     tagfilter.subscribe ( (lst) => {
         localStorage.setItem("tagfilter", JSON.stringify(lst));
@@ -54,10 +61,11 @@
 <script lang="ts">
     import { slide } from 'svelte/transition'
     import Tag from './Tag.svelte';
-    import Tags, { ITag, type TagStore } from '../data/Tags'
     import Todos from '../data/Todos';
     import TagInput from './TagInput.svelte';
     import TagEdit from './TagEdit.svelte';
+
+
     import { key, hasPassword } from '../data/Lock';
 
     $: visible = ($hasPassword && !$key) ? false : $tagfilter.length > 0;
@@ -65,12 +73,12 @@
     let tagInput = "";
 
     const onAddTag = async (ev: CustomEvent) => {
-        let oTag: ITag  = ev.detail.object;
+        let oTag: TagInstance  = ev.detail.object;
         addTag(oTag);
         tagInput = "";
     }
 
-    const removeTag = async (oTag: TagStore) => {
+    const removeTag = async (oTag: TagInstanceStore) => {
         if($edittag == oTag) $edittag = undefined;
         $tagfilter = $tagfilter.filter( (t) => t != oTag.object.key );
     }

@@ -1,9 +1,10 @@
 <script context="module" lang="ts">
-    import type { TagStore } from '../data/Tags'
+    import { TagInstanceStore } from '../data/TagManager';
+    import { TagManager } from '../data/TagManager';
     import { tagfilter } from './TagFilter.svelte';
     import { toast } from '../lib/components/Toast.svelte';
 
-    export let edittag: Writable<TagStore> = writable();
+    export let edittag: Writable<TagInstanceStore> = writable();
 
 </script>
 
@@ -14,7 +15,7 @@
     const dropTag =async () => {
         if(confirm("deleting the tag here, will remove it from all Todos too. This step can not be undone! Continue?")) {
             if($edittag){
-                await $edittag.object.drop();
+                await TagManager.dropEntry($edittag);
                 $tagfilter = $tagfilter.filter( (t) => t != $edittag.object.key );
                 $edittag = undefined;
                 toast("tag removed", "info", 2);
@@ -23,9 +24,7 @@
     }
 
     const saveTag = async () => {
-        await $edittag.object.insert(); 
-        $edittag.notifiySubscribers()
-        $edittag = undefined;
+        await TagManager.updateEntry($edittag, $edittag.object)
         toast("changes saved", "success", 2);
     }
 

@@ -5,3 +5,7 @@ export function isObject(obj: unknown): obj is Object {
 export function isArray(arr: unknown): arr is [] { 
     return arr instanceof Array
 }
+
+export function isError(obj: unknown): obj is Error {
+    return obj instanceof Error
+}
