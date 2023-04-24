@@ -1,6 +1,7 @@
-import { DatabaseInstance, DatabaseInstanceStore, DatabaseManager } from "./CDatabaseManager"
+import { DatabaseInstance, DatabaseInstanceStore, DatabaseManager, type DBE } from "./CDatabaseManager"
 import DB from '../lib/database'
 import cryptography from "../lib/cryptography"
+import type { Readable, Subscriber, Unsubscriber } from "svelte/store";
 
 const empty_hash = await cryptography.sha256("", true) as string;
 
@@ -12,6 +13,7 @@ export class TagError extends Error {
 }
 
 export class TagInstance extends DatabaseInstance{
+    protected error(code: DBE, originalError: Error): Error { return originalError; }
 
     async getDatabaseData(): Promise<Object> {
         return {
@@ -58,7 +60,7 @@ export class TagInstance extends DatabaseInstance{
 
     getKey(): Promise<string> { return this.keypromise; }
 
-    static generatePrimaryKey(value): Promise<string> {
+    static generatePrimaryKey(value: string): Promise<string> {
         const key = (value || "").trim().toLowerCase();
         if (!key) throw new TagError(TagError.EMPTY_TAG_KEY);
         return cryptography.sha256( key, true) as Promise<string>
@@ -77,8 +79,17 @@ export class TagInstanceStore extends DatabaseInstanceStore<TagInstance> {
 
 }
 
-
 class CTagManager extends DatabaseManager<TagInstance, TagInstanceStore> {
+
+    protected error(code: DBE, originalerror: Error): Error {
+        switch(code) {
+        case 'no_data_for_pk': 
+            return new TagError(TagError.NO_TAG_FOR_KEY);
+
+        default: 
+            return originalerror; 
+        }
+    }
 
     protected async buildStoreFromData(data: Partial<TagInstance>, generateNew: boolean): Promise<TagInstanceStore> {
         return new TagInstanceStore(new TagInstance(data, generateNew), () => () => { });
@@ -90,6 +101,7 @@ class CTagManager extends DatabaseManager<TagInstance, TagInstanceStore> {
             instance.color = undefined;
             return instance;
         })
+        tagDataList.updateList();
     }
 
     constructor() { super(DB, "tags") }

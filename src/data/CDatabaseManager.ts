@@ -5,6 +5,11 @@ import type IJSONExportable from "./IJSONExportable"
 import type IEncryptable from "./IEncryptable"
 import { SvelteObjectStore } from '../lib/SvelteObjectStore'
 
+import DebugModule from '../lib/debug'
+import type { Subscriber } from 'svelte/store'
+
+const debug = DebugModule.prefix("CDatabaseManager.ts")
+
 type DatabasePrimaryKey = string | number;
 
 export abstract class DatabaseInstance implements IEncryptable {
@@ -13,16 +18,16 @@ export abstract class DatabaseInstance implements IEncryptable {
     protected locked: boolean = false;
 
     abstract getPrimaryKey(): Promise<DatabasePrimaryKey>;
-
     abstract getDatabaseData(): Promise<Object>;
+    protected abstract error(code: DBE, originalError: Error): Error
 
 // Implement IEncryptable
     lock(key: CryptoKey): Promise<this> {
-        throw new Error('Method not implemented.')
+        throw this.error("not_implemented", new Error('Method not implemented.'))
     }
 
     unlock(key: CryptoKey): Promise<this> {
-        throw new Error('Method not implemented.')
+        throw this.error("not_implemented", new Error('Method not implemented.'))
     }
 
     isLocked(): boolean { return this.locked; }
@@ -37,15 +42,22 @@ export abstract class DatabaseInstanceStore<Instance extends DatabaseInstance> e
     }
 }
 
+export type DBE = "none" | "no_data_for_pk" | "not_implemented" 
 
 export abstract class DatabaseManager<Instance extends DatabaseInstance, Store extends DatabaseInstanceStore<Instance>> implements IJSONExportable {
+
+    protected static readonly ERROR_NO_DATA_FOR_PK = 1;
 
     protected table: DexieTable;
 
     protected abstract buildStoreFromData(data: Partial<Instance>, createNewIfNotExists: boolean): Promise<Store>;
     protected abstract afterStoreDrop(store: Store): Promise<void>;
 
+    protected abstract error(code: DBE, originalerror: Error): Error
+
     private instances: Map<DatabasePrimaryKey, Store> = new Map();
+
+    private changeListeners: Set<()=>void> = new Set();
 
     constructor(db: Dexie, table: string) {
         this.table = db.table(table);
@@ -55,15 +67,27 @@ export abstract class DatabaseManager<Instance extends DatabaseInstance, Store e
         return this.table.get(pk);
     }
 
+    registerChangeListener( listener: ()=>void ): () => void {
+        return () => this.changeListeners.delete(listener);
+    }
+
+    signalChange() {
+        this.changeListeners.forEach( fnc => fnc() ) 
+    }
+
     async getInstanceByPK(pk: DatabasePrimaryKey): Promise<Store> {
+        const deb = debug.prefix("#DatabaseManager.getInstanceByPK()", pk);
         if (!this.instances.has(pk)) { 
+            deb.log("not loaded yet")
             const instanceData = await this.loadInstanceData(pk);
-            if (!instanceData) throw new Error(`no data for pk "${pk}" found`);
+
+            deb.log("instance data", instanceData)
+            if (!instanceData) throw this.error("no_data_for_pk", new Error(`no data for pk "${pk}" found`));
 
             const store = await this.buildStoreFromData(instanceData, false);
-            this.instances.set(pk, store);
+            deb.log("built store", store)
 
-            return store;
+            this.instances.set(pk, store);
         }
 
         return this.instances.get(pk);
@@ -76,7 +100,10 @@ export abstract class DatabaseManager<Instance extends DatabaseInstance, Store e
                 : store
             )
             .then(store =>
-                this.insert(store.object).then(instance => store)
+                this.insert(store.object).then(instance => {
+                    this.signalChange();
+                    return store
+                })
             )
     }
 
@@ -88,6 +115,7 @@ export abstract class DatabaseManager<Instance extends DatabaseInstance, Store e
         return prom.then(instance => this.insert(instance))
             .then(instance => instance.getDatabaseData())
             .then( data => store.updateData(data) )
+            .then( () => this.signalChange() )
     }
 
     dropEntry(store: Store): Promise<void> {
@@ -102,18 +130,26 @@ export abstract class DatabaseManager<Instance extends DatabaseInstance, Store e
             })
             .then(() => { this.instances.delete(context.pk) })
             .then(() => this.afterStoreDrop(store))
+            .then(() => this.signalChange())
     }
 
     private insert(instance: Instance):  Promise<Instance> { 
         return instance.getDatabaseData()
             .then( data => this.table.put(data) )
-            .then( () => instance )
+            .then( () => {
+                this.signalChange()
+                return instance
+            } )
+    }
+
+    public async encryptAll(newKey: CryptoKey, oldKey?: CryptoKey): Promise<void> {
+        throw this.error("not_implemented", new Error("encryptAll not implemented"));
     }
 
 
 // Implement IJSONExportable
     toJSONObject(): Promise<Object> {
-        throw new Error("Method not implemented.")
+        throw this.error("not_implemented", new Error("Method not implemented."));
     }
 }
 

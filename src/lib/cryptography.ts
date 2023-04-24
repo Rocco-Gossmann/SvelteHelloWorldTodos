@@ -1,14 +1,11 @@
-export function sha256(data: string, toString=false): Promise<ArrayBuffer|string> {
+export async function sha256(data: string, toString=false): Promise<ArrayBuffer|string> {
     if (toString) {
-        return crypto.subtle.digest("SHA-256", (new TextEncoder()).encode(data)).then(buffer => {
-            const buff = new Uint8Array(buffer);
-            let ret = "";
-
-            for (let a = 0; a < buff.length; a++) 
-                ret += buff[a].toString(16).padStart(2, '0');
-
-            return ret;
-        })
+        const buffer = await crypto.subtle.digest("SHA-256", (new TextEncoder()).encode(data));
+        const buff = new Uint8Array(buffer);
+        let ret = "";
+        for (let a = 0; a < buff.length; a++)
+            ret += buff[a].toString(16).padStart(2, '0');
+        return ret;
     }
     else return crypto.subtle.digest(
         "SHA-256",  
@@ -79,7 +76,7 @@ export function password2CryptoKey(pass: string): Promise<CryptoKey> {
 export async function synckey_encrypt(data: ArrayBuffer, pass: string|CryptoKey): Promise<EncryptedData> { 
     const  key: CryptoKey = (pass instanceof CryptoKey) ? pass : await password2CryptoKey(pass);
     const iv = new Uint8Array(16);
-    await crypto.getRandomValues(iv);
+    crypto.getRandomValues(iv);
 
     return new EncryptedData({
         iv, 

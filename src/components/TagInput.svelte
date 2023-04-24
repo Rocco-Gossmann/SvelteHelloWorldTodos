@@ -3,31 +3,51 @@
     import { createEventDispatcher } from 'svelte';
     import { toast } from '../lib/components/Toast.svelte';
 
-    import {TagManager, TagInstance, TagError} from '../data/TagManager';
+    import {TagManager, TagInstance, TagError, type TagInstanceStore} from '../data/TagManager';
+    import DebugModule from '../lib/debug';
 
     import { key } from '../data/Lock'
-    import { isError } from '../lib/utils';
 
     const on = createEventDispatcher();
+    const debug = DebugModule.prefix("TagInput.svelte");
 
     export let visible = true;
     export let value = "";
     export let noautocreate = false;
 
-    const onSubmit = () => {
-        TagInstance.generatePrimaryKey(value)
-            .then( key => TagManager.createNewEntry({ value, key }, $key) )
-            .then( tag => on("submit", tag) )
+    const onSubmit = async () => {
+        const deb = debug.prefix("onSubmit()", value);
+        
+        const pk = await TagInstance.generatePrimaryKey(value);
+        deb.log("pk is ", pk)
 
-            .catch( err  => {
-                if(isError(err) && err.message == TagError.EMPTY_TAG_KEY)
-                    toast("can't submit an empty Tag", "alert", 2);
-                else {
-                    console.error( err )
+        let tag;
+
+        try { tag = await TagManager.getInstanceByPK(pk); }
+        catch( err ) {
+            deb.log("cought something", err, err?.message, err?.message == TagError.NO_TAG_FOR_KEY);
+            switch(err?.message) {
+                case TagError.EMPTY_TAG_KEY: 
+                    deb.log("empty tag");
+                    toast("can't submit an empty Tag", "alert", 2); 
+                    return;
+
+                case TagError.NO_TAG_FOR_KEY: 
+                    deb.log("no tag for key yet => create one");
+                    tag = await TagManager.createNewEntry({ value, key: pk});
+                    break;
+
+                default:
+                    deb.error( err )
                     toast("ERROR: see console", "alert", 2);
-                }
-            })
+            }
+        }
+        finally {
+            deb.log("tag is", tag);
+            if(tag) on("submit", tag);
+        }
     }
+
 </script>
 {#if visible}
 <form class="taginput" class:open={visible} 

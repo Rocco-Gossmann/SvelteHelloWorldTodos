@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
-    import { TagInstanceStore } from '../data/TagManager';
+    import type { TagInstanceStore } from '../data/TagManager';
     import { TagManager } from '../data/TagManager';
+    import { TodoManager } from '../data/TodoManager';
     import { tagfilter } from './TagFilter.svelte';
     import { toast } from '../lib/components/Toast.svelte';
 
@@ -15,8 +16,10 @@
     const dropTag =async () => {
         if(confirm("deleting the tag here, will remove it from all Todos too. This step can not be undone! Continue?")) {
             if($edittag){
+                const key = await $edittag.object.getKey();
+                await TodoManager.dropTag(key);
                 await TagManager.dropEntry($edittag);
-                $tagfilter = $tagfilter.filter( (t) => t != $edittag.object.key );
+                $tagfilter = $tagfilter.filter( (t) => t != key )
                 $edittag = undefined;
                 toast("tag removed", "info", 2);
             }
@@ -28,12 +31,15 @@
         toast("changes saved", "success", 2);
     }
 
+    let objectKey = "";
+    $: $edittag?.object?.getKey().then( key => objectKey = key );
+
 </script>
 {#if $edittag}
 <section transition:slide>
 
     <label for="tagedit_key_input">Key:</label>
-    <input  id="tagedit_key_input" type="text" value={$edittag.object.key} disabled/>
+    <input  id="tagedit_key_input" type="text" value={objectKey} disabled/>
     <button on:click|preventDefault={() => dropTag()} 
         class="fa fa-trash-can" title="delete"></button>
 

@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
     import './assets/main.css'
     
     import './assets/lib/noscrollbars.js'

@@ -4,8 +4,9 @@
     import { password2CryptoKey } from '../lib/cryptography';
     import { key, hasPassword } from '../data/Lock';
 
-    import Tags from '../data/Tags';
     import Todos from '../data/Todos';
+    import TodoManager from '../data/TodoManager';
+    import TagManager from '../data/TagManager';
 
     let unlocked = localStorage.getItem("haslock") == undefined;
     let showUnlockDialog = false;
@@ -51,8 +52,8 @@
                 passwordInput = "";
             }
             else {
-                await Tags.encryptAll(newkey, $key);
-                await Todos.encryptAll(newkey, $key);
+                await TagManager.encryptAll(newkey, $key);
+                await TodoManager.encryptAll(newkey, $key);
                 hasPassword.set(true);
                 localStorage.setItem("haslock", "1");
                 key.set(undefined);

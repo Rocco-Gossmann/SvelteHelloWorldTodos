@@ -1,16 +1,24 @@
-<script context="module" lang="ts">
+<script context="module">
     import { writable } from 'svelte/store';
-
     import { edittag } from './TagEdit.svelte';
+	//import type { TagInstance, TagInstanceStore } from '../data/TagManager'
+    import DebugModule from '../lib/debug'
 
-	import type { TagInstance, TagInstanceStore } from '../data/TagManager';
+    const debug = DebugModule.prefix("TagFilter.svelte")
 
-    export const tagfilter = writable<string[]>([]);
+    /** @type {Writable<string[]>} */
+    export const tagfilter = writable([]);
 
-    export function addTag(tag: TagInstance) {
-        console.log(tag);
+
+    /** exportaddTag() Adds a tag to the filter
+     * @param {TagInstanceStore}  tag  -
+     */
+    export function addTag(tag) {
+        debug.prefix("#addTag()", tag);
+
         tag.getKey()
             .then( key => tagfilter.update( lst => {
+
                 if(lst.indexOf(key) == -1) {
                     lst.push(key);
                 }
@@ -19,12 +27,19 @@
             }))
     }
 
-    /*
+    /**  @type {string | Array.<string>} */
+    let filter = localStorage.getItem("tagfilter");
+    let lastlist = [];
+    try { filter = JSON.parse(filter); }
+    catch( err ) {
+        debug.error(err); 
+        filter = [];
+    }
 
+/*
     try {
         let filter = localStorage.getItem("tagfilter");
-        let lastlist = [];
-        if(filter) filter = JSON.parse(filter);
+
         if(isArray(filter)) {
             tagfilter.set(filter);
             const clearTags = [];
@@ -48,9 +63,8 @@
         }
 
     }
-    catch( err ) { /* NOP * / }
-    */
-
+    catch( err ) { debug.error("on load error", err)  }
+*/
     tagfilter.subscribe ( (lst) => {
         localStorage.setItem("tagfilter", JSON.stringify(lst));
         Todos.filter(lst);
@@ -65,10 +79,13 @@
     import TagInput from './TagInput.svelte';
     import TagEdit from './TagEdit.svelte';
 
-
     import { key, hasPassword } from '../data/Lock';
+    import type { TagInstanceStore } from '../data/TagManager';
+
+    const debug = DebugModule.prefix("TagFilter.svelte");
 
     $: visible = ($hasPassword && !$key) ? false : $tagfilter.length > 0;
+    $: debug.log("visible changed", visible);
 
     let tagInput = "";
 
@@ -79,8 +96,13 @@
     }
 
     const removeTag = async (oTag: TagInstanceStore) => {
+        const _debug = debug.prefix("#removeTag()", oTag, $tagfilter);
         if($edittag == oTag) $edittag = undefined;
-        $tagfilter = $tagfilter.filter( (t) => t != oTag.object.key );
+
+        const tagkey = await oTag.object.getKey()
+        _debug.log("got key", tagkey)
+
+        $tagfilter = $tagfilter.filter( (t) => t != tagkey );
     }
 
 </script>
