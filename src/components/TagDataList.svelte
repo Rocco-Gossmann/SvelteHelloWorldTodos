@@ -20,7 +20,6 @@
 
         const tags = await db.table("tags").toArray();
         deb.log("got", tags.length,  "tag(s) from db");
-
         deb.log("Encryption Key is: ", $key);
 
         const proms = [];

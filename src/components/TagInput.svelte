@@ -3,7 +3,7 @@
     import { createEventDispatcher } from 'svelte';
     import { toast } from '../lib/components/Toast.svelte';
 
-    import {TagManager, TagInstance, TagError, type TagInstanceStore} from '../data/TagManager';
+    import {TagManager, TagInstance, TagError} from '../data/TagManager';
     import DebugModule from '../lib/debug';
 
     import { key } from '../data/Lock'

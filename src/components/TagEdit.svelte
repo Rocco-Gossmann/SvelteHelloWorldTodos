@@ -2,7 +2,7 @@
     import type { TagInstanceStore } from '../data/TagManager';
     import { TagManager } from '../data/TagManager';
     import { TodoManager } from '../data/TodoManager';
-    import { tagfilter } from './TagFilter.svelte';
+    import { tagfilter } from '../data/TagFilter';
     import { toast } from '../lib/components/Toast.svelte';
 
     export let edittag: Writable<TagInstanceStore> = writable();

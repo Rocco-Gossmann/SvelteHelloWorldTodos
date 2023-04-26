@@ -1,14 +1,9 @@
 <script context="module">
-    import { writable } from 'svelte/store';
     import { edittag } from './TagEdit.svelte';
-	//import type { TagInstance, TagInstanceStore } from '../data/TagManager'
     import DebugModule from '../lib/debug'
+    import tagfilter from '../data/TagFilter'
 
     const debug = DebugModule.prefix("TagFilter.svelte")
-
-    /** @type {Writable<string[]>} */
-    export const tagfilter = writable([]);
-
 
     /** exportaddTag() Adds a tag to the filter
      * @param {TagInstanceStore}  tag  -
@@ -26,50 +21,6 @@
                 return lst;
             }))
     }
-
-    /**  @type {string | Array.<string>} */
-    let filter = localStorage.getItem("tagfilter");
-    let lastlist = [];
-    try { filter = JSON.parse(filter); }
-    catch( err ) {
-        debug.error(err); 
-        filter = [];
-    }
-
-/*
-    try {
-        let filter = localStorage.getItem("tagfilter");
-
-        if(isArray(filter)) {
-            tagfilter.set(filter);
-            const clearTags = [];
-            (async () => {
-                let tags = await Promise.all(
-                    filter.map( 
-                        (tag) => Tags.findByValue(tag)
-                            .catch( err => {
-                                console.warn(`tag '${tag}' does not exist`)
-                                clearTags.push(tag);
-                            })
-                    )
-                );
-
-                clearTags.forEach((t) => tagfilter.update( list => lastlist = list.filter( t1 => t1 != t)))
-
-                if(isArray(tags))
-                    tags = tags.filter(t=>typeof(t) !== 'undefined');
-
-            })()
-        }
-
-    }
-    catch( err ) { debug.error("on load error", err)  }
-*/
-    tagfilter.subscribe ( (lst) => {
-        localStorage.setItem("tagfilter", JSON.stringify(lst));
-        Todos.filter(lst);
-    })
-
 </script>
 
 <script lang="ts">

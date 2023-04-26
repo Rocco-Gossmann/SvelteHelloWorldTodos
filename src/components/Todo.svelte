@@ -1,27 +1,34 @@
 <script lang="ts">
     import { addTag } from "./TagFilter.svelte";
     import { toast } from "../lib/components/Toast.svelte";
-
     import TagInput from "./TagInput.svelte";
     import Tag from "./Tag.svelte";
-    import { Todos, type ITodo } from "../data/Todos";
 
     import DebugModule from "../lib/debug";
     import type { TagInstanceStore } from "../data/TagManager";
+    import { TodoManager, type TodoInstanceStore } from "../data/TodoManager";
+
+    import tagfilter from "../data/TagFilter";
+    import { key } from "../data/Lock";
 
     const debug = DebugModule.prefix("Todo.svelte");
 
-    export let todo;
+    export let todo: TodoInstanceStore;
 
     let showTagInput = false;
 
-    const dropTodo = (todo: ITodo) => {
-        if (confirm("remove todo permanently ?")) Todos.remove(todo);
+    const dropTodo = () => {
+        if (confirm("remove $todo.permanently ?")) TodoManager.dropEntry(todo);
     };
 
-    const toggleDone = async (todo: ITodo) => {
-        todo.done = !todo.done;
-        Todos.set(todo);
+    async function updateTodo(ul: boolean = false) {
+        await TodoManager.updateEntry(todo, $todo, $key)
+        if(ul) await TodoManager.updateList($tagfilter, $key)
+    }
+
+    const toggleDone = async () => {
+        $todo.done = !$todo.done;
+        await updateTodo(true);
     };
 
     const onTagClick = async (tag: TagInstanceStore) => {
@@ -37,8 +44,8 @@
         if (confirm("remove Tag?")) {
             const oTag = ev.detail;
             const key = await oTag.object.getKey();
-            todo.tags = todo.tags.filter((t) => t != key);
-            Todos.set(todo);
+            $todo.tags = $todo.tags.filter((t) => t != key);
+            await updateTodo();
         }
     };
 
@@ -47,46 +54,46 @@
         const oTag = ev.detail;
         debug.log("got tag", oTag);
         const key = await oTag.object.getKey();
-        if (todo.tags.indexOf(key) == -1) {
-            todo.tags.push(key);
-            Todos.set(todo);
+        if ($todo.tags.indexOf(key) == -1) {
+            $todo.tags.push(key);
         }
+        await updateTodo();
 
         showTagInput = false;
     };
 </script>
 
-<article class:done={todo.done}>
+<article class:done={$todo.done}>
     <span
         ><input
             type="checkbox"
-            bind:checked={todo.done}
-            on:click={() => toggleDone(todo)}
+            bind:checked={$todo.done}
+            on:click={() => toggleDone()}
         /></span
     >
 
-    <span class="txt">{todo.description}</span>
+    <span class="txt">{$todo.description}</span>
 
     <button
-        on:click|preventDefault={() => dropTodo(todo)}
+        on:click|preventDefault={() => dropTodo()}
         class="fa fa-trash-can"
         title="delete"
     />
 
     <ul>
-        {#each todo.tags as tag}
+        {#each $todo.tags as tag}
             <li>
                 <Tag
                     key={tag}
                     on:click={(ev) => onTagClick(ev.detail)}
                     on:remove={onTagRemove}
-                    noremove={todo.done}
+                    noremove={$todo.done}
                 />
             </li>
         {/each}
     </ul>
 
-    {#if !todo.done}
+    {#if !$todo.done}
         <button
             on:click|preventDefault={() => (showTagInput = !showTagInput)}
             class="fa fa-tag"
