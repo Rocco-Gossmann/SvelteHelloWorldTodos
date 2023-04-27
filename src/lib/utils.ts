@@ -7,16 +7,10 @@ export function isArray(arr: unknown): arr is [] {
 }
 
 export function isArrayEqual(arr1: Array<any>, arr2: Array<any>) {
-    if(
-        (arr1 instanceof Array && !(arr2 instanceof Array)) 
-        || 
-        (arr2 instanceof Array && !(arr1 instanceof Array)) 
-    ) return false;
 
     if(!(arr1 instanceof Array && arr2 instanceof Array))
-        throw new Error("both values given are not arrays");
+        return false;
 
-    if(arr2 instanceof Array && !(arr1 instanceof Array)) return false
     if(arr1.length != arr2.length) return false;
 
     if(arr1.filter( (e, i) => { 
