@@ -1,8 +1,14 @@
-import { DatabaseInstance, DatabaseInstanceStore, DatabaseManager, type DBE } from "./CDatabaseManager"
+
 import db from "../lib/database";
-import { writable, type Writable } from "svelte/store";
+
+import { DatabaseInstance, DatabaseInstanceStore, DatabaseManager, type DBE } from "./CDatabaseManager"
 import DebugModule from "../lib/debug";
+
+import { writable, type Writable } from "svelte/store";
 import { isArrayEqual } from "../lib/utils";
+
+import { tagfilter as tagfilterstore } from "./TagFilter";
+import { key as cryptoKey } from "./Lock";
 
 const debug = DebugModule.prefix("TodoManager.ts");
 
@@ -48,13 +54,13 @@ export class TodoInstanceStore extends DatabaseInstanceStore<TodoInstance> {
 
 export const todolist: Writable<TodoInstanceStore[]> = writable([]);
 
+let lastfilter: string[] = ["-1"];
+let lastkey: CryptoKey = undefined;
+
 class CTodoManager extends DatabaseManager<TodoInstance, TodoInstanceStore> {
 
     protected error(code: DBE, originalerror: Error): Error { return originalerror; }
     private debug = debug.prefix("#CTagManager");
-
-    private lastfilter;
-    private lastkey;
 
     constructor() { super(db, "todos") };
 
@@ -79,18 +85,12 @@ class CTodoManager extends DatabaseManager<TodoInstance, TodoInstanceStore> {
         throw Error("not implemented");
     }
 
-    async updateList(tagfilter: string[] = [], key: CryptoKey = undefined) {
+    async updateList() {
+
+        const tagfilter = lastfilter;
+        const key = lastkey;
 
         const debug = this.debug.prefix(".updateList()", tagfilter, key);
-
-        if(this.lastkey === key && isArrayEqual(tagfilter, this.lastfilter)) {
-            debug.log("same credentials as before")
-            return todolist.update( (lst) => lst );
-        }
-        else debug.log("new credentials", this.lastkey, this.lastfilter, tagfilter, key);
-
-        this.lastkey = key;
-        this.lastfilter = tagfilter;
 
         const newTodos = await Promise.all(
             (await(
@@ -120,3 +120,16 @@ class CTodoManager extends DatabaseManager<TodoInstance, TodoInstanceStore> {
 
 export const TodoManager = new CTodoManager();
 export default TodoManager;
+
+cryptoKey.subscribe( (key) => {
+    debug.prefix("#cryptoKey.subscribe()", "new cryptoKey", key); 
+    lastkey = key;
+    TodoManager.updateList();
+})
+
+tagfilterstore.subscribe( lst  => {
+    debug.prefix("#tagfilterstore.subscribe()", "new tagfilter", lst); 
+    lastfilter = lst;
+    TodoManager.updateList();
+})
+

@@ -1,96 +1,92 @@
-<script context="module">
-    import { edittag } from './TagEdit.svelte';
-    import DebugModule from '../lib/debug'
-    import tagfilter from '../data/TagFilter'
+<script context="module" lang="ts">
+    import { edittag } from "./TagEdit.svelte";
+    import DebugModule from "../lib/debug";
+    import tagfilter from "../data/TagFilter";
+    import { key } from "../data/Lock";
 
-    const debug = DebugModule.prefix("TagFilter.svelte")
+    const debug = DebugModule.prefix("TagFilter.svelte");
 
-    /** exportaddTag() Adds a tag to the filter
-     * @param {TagInstanceStore}  tag  -
-     */
-    export function addTag(tag) {
+    export function addTag(tag: TagInstance) {
         debug.prefix("#addTag()", tag);
 
-        tag.getKey()
-            .then( key => tagfilter.update( lst => {
-
-                if(lst.indexOf(key) == -1) {
+        tag.getKey().then((key) =>
+            tagfilter.update((lst) => {
+                debug.prefix(".tagfilter.update()", lst);
+                if (lst.indexOf(key) == -1)
                     lst.push(key);
-                }
 
                 return lst;
-            }))
+            })
+        );
     }
 </script>
 
 <script lang="ts">
-    import { slide } from 'svelte/transition'
-    import Tag from './Tag.svelte';
-    import Todos from '../data/Todos';
-    import TagInput from './TagInput.svelte';
-    import TagEdit from './TagEdit.svelte';
+    import { slide } from "svelte/transition";
+    import Tag from "./Tag.svelte";
+    import TagInput from "./TagInput.svelte";
+    import TagEdit from "./TagEdit.svelte";
 
-    import { key, hasPassword } from '../data/Lock';
-    import type { TagInstanceStore } from '../data/TagManager';
+    import { hasPassword } from "../data/Lock";
+    import type { TagInstance, TagInstanceStore } from "../data/TagManager";
 
     const debug = DebugModule.prefix("TagFilter.svelte");
 
-    $: visible = ($hasPassword && !$key) ? false : $tagfilter.length > 0;
+    $: visible = $hasPassword && !$key ? false : $tagfilter.length > 0;
     $: debug.log("visible changed", visible);
 
     let tagInput = "";
 
     const onAddTag = async (ev: CustomEvent) => {
-        let oTag: TagInstance  = ev.detail.object;
+        let oTag: TagInstance = ev.detail.object;
         addTag(oTag);
         tagInput = "";
-    }
+    };
 
     const removeTag = async (oTag: TagInstanceStore) => {
         const _debug = debug.prefix("#removeTag()", oTag, $tagfilter);
-        if($edittag == oTag) $edittag = undefined;
+        if ($edittag == oTag) $edittag = undefined;
 
-        const tagkey = await oTag.object.getKey()
-        _debug.log("got key", tagkey)
+        const tagkey = await oTag.object.getKey();
+        _debug.log("got key", tagkey);
 
-        $tagfilter = $tagfilter.filter( (t) => t != tagkey );
-    }
-
+        $tagfilter = $tagfilter.filter((t) => t != tagkey);
+    };
 </script>
 
-
-<a role="button" href={"#"} on:click|preventDefault={() => visible = !visible }>Tags</a>
+<a role="button" href={"#"} on:click|preventDefault={() => (visible = !visible)}
+    >Tags</a
+>
 
 {#if visible}
-<TagInput bind:value={tagInput} on:submit={onAddTag} />
+    <TagInput bind:value={tagInput} on:submit={onAddTag} />
 
-<TagEdit />
+    <TagEdit />
 
-<section class="taglist" class:open={visible} transition:slide>
-
-    {#if $tagfilter.length}
-
-        {#each $tagfilter as tag}
-            <Tag 
-                key={tag} 
-                on:remove={ (ev) => removeTag(ev.detail) } 
-                on:click={ (ev) => {
-                    console.log(ev.detail, $edittag, edittag)
-                    edittag.set(edittag && $edittag==ev.detail ? undefined : ev.detail) 
-                }}
-            />
-        {/each}
-
-    {:else}
-        No Tags yet
-    {/if}
-
-</section>
+    <section class="taglist" class:open={visible} transition:slide>
+        {#if $tagfilter.length}
+            {#each $tagfilter as tag}
+                <Tag
+                    key={tag}
+                    on:remove={(ev) => removeTag(ev.detail)}
+                    on:click={(ev) => {
+                        console.log(ev.detail, $edittag, edittag);
+                        edittag.set(
+                            edittag && $edittag == ev.detail
+                                ? undefined
+                                : ev.detail
+                        );
+                    }}
+                />
+            {/each}
+        {:else}
+            No Tags yet
+        {/if}
+    </section>
 {/if}
 
-
 <style>
-    A[role=button] {
+    A[role="button"] {
         white-space: nowrap;
         width: auto;
         float: left;
@@ -108,5 +104,4 @@
     SECTION.taglist :global(SPAN.tag > A) {
         margin-left: var(--spacing);
     }
-
 </style>

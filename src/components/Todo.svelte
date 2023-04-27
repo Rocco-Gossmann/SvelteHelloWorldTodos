@@ -45,14 +45,14 @@
             const oTag = ev.detail;
             const key = await oTag.object.getKey();
             $todo.tags = $todo.tags.filter((t) => t != key);
-            await updateTodo();
+            await updateTodo(true);
         }
     };
 
     const onTagAdd = async (ev: CustomEvent<TagInstanceStore>) => {
-        debug.prefix("#onTagAdd()", ev);
+        const deb = debug.prefix("#onTagAdd()", ev);
         const oTag = ev.detail;
-        debug.log("got tag", oTag);
+        deb.log("got tag", oTag);
         const key = await oTag.object.getKey();
         if ($todo.tags.indexOf(key) == -1) {
             $todo.tags.push(key);

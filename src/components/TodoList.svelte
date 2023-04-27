@@ -4,10 +4,6 @@
     import {flip} from 'svelte/animate'
     import Todo from './Todo.svelte';
     import {todolist,  TodoManager, type TodoInstanceStore} from '../data/TodoManager';
-    import tagfilter from '../data/TagFilter';
-    import { key } from '../data/Lock';
-
-    import { onMount } from 'svelte';
     import DebugModule from '../lib/debug';
 
     const debug = DebugModule.prefix("TodoList.svelte");
@@ -21,8 +17,6 @@
     $: debug.log("doneList:", doneList.map( tis => tis.object.id ));
    
     const [crossSend, crossReceive] = crossfade({ fallback: slide })
-
-    $: TodoManager.updateList($tagfilter, $key);
 
     const duration = 250
 </script>
