@@ -2,6 +2,10 @@
     import { createEventDispatcher } from "svelte";
     import { TagManager, TagInstanceStore, TagInstance } from "../data/TagManager";
 
+    import DebugModule from "../lib/debug";
+
+    const debug = DebugModule.prefix("Tag.svelte");
+
     export let tagstore: TagInstanceStore = undefined;
     export let value = "";
     export let key = "";
@@ -13,12 +17,18 @@
 
     $: if(!tagstore) {
         if(key) {
-            TagManager.getInstanceByPK(key).then( store => tagstore = store );
+            TagManager.getInstanceByPK(key).then( store => {
+                debug.prefix("#tagstoreupdate", "got new store for key", key, store.object.value)
+                tagstore = store
+            });
         }
         else if(value) { 
             TagInstance.generatePrimaryKey(value)
                 .then( key => TagManager.getInstanceByPK(key))
-                .then( store => tagstore = store );
+                .then( store => {
+                    debug.prefix("#tagstoreupdate", "got new store for value", value, store.object.value)
+                    tagstore = store
+                });
         }
     }
 

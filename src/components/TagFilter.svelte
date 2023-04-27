@@ -11,7 +11,7 @@
 
         tag.getKey().then((key) =>
             tagfilter.update((lst) => {
-                debug.prefix(".tagfilter.update()", lst);
+                debug.prefix("#tagfilter.update()", lst, key);
                 if (lst.indexOf(key) == -1)
                     lst.push(key);
 
@@ -34,6 +34,8 @@
 
     $: visible = $hasPassword && !$key ? false : $tagfilter.length > 0;
     $: debug.log("visible changed", visible);
+
+    $: debug.log("tagfilter changed", $tagfilter);
 
     let tagInput = "";
 
@@ -64,7 +66,7 @@
     <TagEdit />
 
     <section class="taglist" class:open={visible} transition:slide>
-        {#if $tagfilter.length}
+        {#key $tagfilter} {#if $tagfilter.length}
             {#each $tagfilter as tag}
                 <Tag
                     key={tag}
@@ -81,7 +83,7 @@
             {/each}
         {:else}
             No Tags yet
-        {/if}
+        {/if} {/key}
     </section>
 {/if}
 
