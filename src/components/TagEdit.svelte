@@ -28,6 +28,7 @@
 
     const saveTag = async () => {
         await TagManager.updateEntry($edittag, $edittag.object)
+        $edittag = undefined;
         toast("changes saved", "success", 2);
     }
 
