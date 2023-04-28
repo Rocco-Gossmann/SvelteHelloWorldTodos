@@ -21,7 +21,7 @@ export abstract class DatabaseInstance implements IEncryptable {
     abstract getDatabaseData(): Promise<Object>;
     protected abstract error(code: DBE, originalError: Error): Error
 
-// Implement IEncryptable
+    // Implement IEncryptable
     lock(key: CryptoKey): Promise<this> {
         throw this.error("not_implemented", new Error('Method not implemented.'))
     }
@@ -51,7 +51,10 @@ export abstract class DatabaseManager<Instance extends DatabaseInstance, Store e
     protected table: DexieTable;
 
     protected abstract buildStoreFromData(data: Partial<Instance>, createNewIfNotExists: boolean): Promise<Store>;
+
     protected abstract afterStoreDrop(store: Store): Promise<void>;
+    protected abstract afterStoreCreate(store: Store): Promise<void>; 
+    protected abstract afterStoreUpdate(store: Store): Promise<void>;
 
     protected abstract error(code: DBE, originalerror: Error): Error
 
@@ -59,8 +62,11 @@ export abstract class DatabaseManager<Instance extends DatabaseInstance, Store e
 
     private changeListeners: Set<()=>void> = new Set();
 
+    private _bounce: Promise<any> = Promise.resolve();
+
     constructor(db: Dexie, table: string) {
         this.table = db.table(table);
+        this._bounce.state = "idle";
     }
 
     private loadInstanceData(pk: DatabasePrimaryKey): Promise<Partial<Instance>> {
@@ -76,46 +82,63 @@ export abstract class DatabaseManager<Instance extends DatabaseInstance, Store e
     }
 
     async getInstanceByPK(pk: DatabasePrimaryKey): Promise<Store> {
-        const deb = debug.prefix("#DatabaseManager.getInstanceByPK()", pk);
-        if (!this.instances.has(pk)) { 
-            deb.log("not loaded yet")
-            const instanceData = await this.loadInstanceData(pk);
+       
+        const deb = debug.prefix("#DatabaseManager.getInstanceByPK()", "call");
 
-            deb.log("instance data", instanceData)
-            if (!instanceData) throw this.error("no_data_for_pk", new Error(`no data for pk "${pk}" found`));
-
-            const store = await this.buildStoreFromData(instanceData, false);
-            deb.log("built store", store)
-
-            this.instances.set(pk, store);
+        if(this._bounce.state == 'busy') {
+            deb.log("is busy => waiting");
+            await this._bounce;
         }
 
-        return this.instances.get(pk);
+        this._bounce = new Promise<Store>( (resolve) => {
+            this._bounce.state = "busy";
+            if (!this.instances.has(pk)) { 
+                deb.log("not loaded yet", this.instances)
+
+                this.loadInstanceData(pk)
+                    .then( instanceData => this.buildStoreFromData(instanceData, false) )
+                    .then( store => {
+                        this.instances.set(pk, store);
+                        this._bounce.state = "idle";
+                        resolve(store);
+                    })
+            }
+            else {
+                deb.log("is loadeded")
+                this._bounce.state = "idle";
+                resolve(this.instances.get(pk))
+            }
+        })
+        this._bounce.state = "busy";
+
+
+        return await this._bounce;
+
     }
 
-    createNewEntry(data: Partial<Instance>, key?: CryptoKey): Promise<Store> {
-        return this.buildStoreFromData(data, true)
-            .then(store => key
-                ? store.object.lock(key).then(() => store)
-                : store
-            )
-            .then(store =>
-                this.insert(store.object).then(instance => {
-                    this.signalChange();
-                    return store
-                })
-            )
+    async createNewEntry(data: Partial<Instance>, key?: CryptoKey): Promise<Store> {
+
+        const store = await this.buildStoreFromData(data, true);
+        if(key) await store.object.lock(key);
+
+        await this.insert(store.object);
+        await this.afterStoreCreate(store);
+        this.signalChange();
+
+        return store;
     }
 
-    updateEntry(store: Store, instance: Instance, key?: CryptoKey): Promise<void> {
-        const prom = key
-            ? instance.lock(key)
-            : Promise.resolve(instance)
+    async updateEntry(store: Store, instance: Instance, key?: CryptoKey): Promise<void> {
 
-        return prom.then(instance => this.insert(instance))
-            .then(instance => instance.getDatabaseData())
-            .then( data => store.updateData(data) )
-            .then( () => this.signalChange() )
+        const isLocked = instance.isLocked();
+        if(key) await instance.lock(key);
+
+        const insertedInstance = await this.insert(instance);
+        store.updateData(await insertedInstance.getDatabaseData());
+        await this.afterStoreUpdate(store);
+        this.signalChange();
+
+        if(key && !isLocked) await instance.unlock(key);
     }
 
     dropEntry(store: Store): Promise<void> {
@@ -124,22 +147,22 @@ export abstract class DatabaseManager<Instance extends DatabaseInstance, Store e
         } = {}
 
         return store.object.getPrimaryKey()
-            .then(pk => {
-                context.pk = pk
-                this.table.delete(pk)
-            })
-            .then(() => { this.instances.delete(context.pk) })
-            .then(() => this.afterStoreDrop(store))
-            .then(() => this.signalChange())
+        .then(pk => {
+            context.pk = pk
+            this.table.delete(pk)
+        })
+        .then(() => { this.instances.delete(context.pk) })
+        .then(() => this.afterStoreDrop(store))
+        .then(() => this.signalChange())
     }
 
     private insert(instance: Instance):  Promise<Instance> { 
         return instance.getDatabaseData()
-            .then( data => this.table.put(data) )
-            .then( () => {
-                this.signalChange()
-                return instance
-            } )
+        .then( data => this.table.put(data) )
+        .then( () => {
+            this.signalChange()
+            return instance
+        } )
     }
 
     public async encryptAll(newKey: CryptoKey, oldKey?: CryptoKey): Promise<void> {
@@ -147,7 +170,7 @@ export abstract class DatabaseManager<Instance extends DatabaseInstance, Store e
     }
 
 
-// Implement IJSONExportable
+    // Implement IJSONExportable
     toJSONObject(): Promise<Object> {
         throw this.error("not_implemented", new Error("Method not implemented."));
     }

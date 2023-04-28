@@ -18,7 +18,7 @@
     $: if(!tagstore) {
         if(key) {
             TagManager.getInstanceByPK(key).then( store => {
-                debug.prefix("#tagstoreupdate", "got new store for key", key, store.object.value)
+                debug.prefix("#tagstoreupdate", "got store for key", key, store.object.value)
                 tagstore = store
             });
         }

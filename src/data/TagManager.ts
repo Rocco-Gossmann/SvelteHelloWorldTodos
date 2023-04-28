@@ -80,6 +80,8 @@ export class TagInstanceStore extends DatabaseInstanceStore<TagInstance> {
 }
 
 class CTagManager extends DatabaseManager<TagInstance, TagInstanceStore> {
+    protected async afterStoreUpdate(){ /** NOP */ }
+    protected async afterStoreCreate(){ /** NOP */ }
 
     protected error(code: DBE, originalerror: Error): Error {
         switch(code) {

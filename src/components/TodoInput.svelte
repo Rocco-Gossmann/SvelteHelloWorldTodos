@@ -1,9 +1,14 @@
 <script lang="ts">
-    import Todos, { todos, type ITodo } from '../data/Todos';
     import { toast } from '../lib/components/Toast.svelte';
     import { tagfilter } from '../data/TagFilter';
+    import { TodoManager, type TodoInstance } from '../data/TodoManager';
+    import { key } from '../data/Lock';
 
-    let todo: ITodo = {
+    import DebugModule from '../lib/debug';
+
+    const debug = DebugModule.prefix("TodoInput.svelte");
+
+    let todo: Partial<TodoInstance> = {
         description: '',
         done: false,
         tags: []
@@ -13,11 +18,15 @@
     $: todo.tags = [ ...$tagfilter ];
 
     const addTodo = () => {
-        if (todo.description.trim() == '') {
+        const _debug = debug.prefix("#addTodo()", todo)
+        todo.description = todo.description.trim();
+
+        if (todo.description == '') {
             toast("noting to add", "alert", 2);
         } else {
-            todo.description = todo.description.trim();
-            Todos.set(todo);
+            TodoManager.createNewEntry(todo, $key)
+                .then( store => { TodoManager.updateList() })
+
             todo = { description: '', done: false, tags: todo.tags };
         }
     };
