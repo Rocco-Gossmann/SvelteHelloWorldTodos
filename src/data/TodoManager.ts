@@ -70,9 +70,8 @@ class CTodoManager extends DatabaseManager<TodoInstance, TodoInstanceStore> {
             () => () => { }
         );
     }
-    protected afterStoreDrop(store: TodoInstanceStore): Promise<void> { 
-        return this.updateList()
-    }
+    protected afterStoreDrop(store: TodoInstanceStore): Promise<void> { return this.updateList() }
+    protected afterStoreUpdate(store: TodoInstanceStore): Promise<void> { return this.updateList(); }
 
     protected async afterStoreCreate(store: TodoInstanceStore): Promise<void> { 
         todolist.update( lst => {
