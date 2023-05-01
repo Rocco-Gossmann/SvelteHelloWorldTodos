@@ -60,7 +60,7 @@
         border: 2px solid var(--tagcolor);
 
         & > A{
-            color: black;
+            color: var(--contrast);
         }
 
     }
