@@ -34,28 +34,28 @@ export class TagInstance extends DatabaseInstance{
 
     constructor(payload: Partial<TagInstance>, generatePK=false) { super()
 
-        this.version = payload.version || 2; 
+        this.version = payload?.version || 2; 
 
-        if (payload.data) {
-            this.data = payload.data;
-            this.value = payload.value || "encrypted tag"
+        if (payload?.data) {
+            this.data = payload?.data;
+            this.value = payload?.value || "encrypted tag"
             this.locked = true;
         }
         else {
             this.data = "";
-            this.color = payload.color || '#73828c'; 
-            this.value = payload.value || "corrupted tag"
+            this.color = payload?.color || '#73828c'; 
+            this.value = payload?.value || "corrupted tag"
             this.locked = false;
         }
 
-        if (!payload.key || !payload.key.trim().length || payload.key.trim() == empty_hash) {
+        if (!payload?.key || !payload?.key?.trim().length || payload?.key?.trim() == empty_hash) {
             if (!this.locked && generatePK) {
                 this.keypromise = TagInstance.generatePrimaryKey(this.value)
                 this.keypromise.then(k => this.key = k)
             }
             else this.keypromise = Promise.reject(new TagError(TagError.EMPTY_TAG_KEY));
         }
-        else this.keypromise = Promise.resolve(payload.key);
+        else this.keypromise = Promise.resolve(payload?.key);
     }
 
     getKey(): Promise<string> { return this.keypromise; }
