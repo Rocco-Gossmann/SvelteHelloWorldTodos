@@ -6,6 +6,7 @@ import type IEncryptable from "./IEncryptable"
 import { SvelteObjectStore } from '../lib/SvelteObjectStore'
 
 import DebugModule from '../lib/debug'
+import PromiseQueue from '../lib/PromiseQueue'
 import type { Subscriber } from 'svelte/store'
 
 const debug = DebugModule.prefix("CDatabaseManager.ts")
@@ -62,11 +63,11 @@ export abstract class DatabaseManager<Instance extends DatabaseInstance, Store e
 
     private changeListeners: Set<()=>void> = new Set();
 
-    private _bounce: Promise<any> = Promise.resolve();
+    private pkQueue: PromiseQueue;
 
     constructor(db: Dexie, table: string) {
         this.table = db.table(table);
-        this._bounce.state = "idle";
+        this.pkQueue = new PromiseQueue();
     }
 
     private loadInstanceData(pk: DatabasePrimaryKey): Promise<Partial<Instance>> {
@@ -81,40 +82,26 @@ export abstract class DatabaseManager<Instance extends DatabaseInstance, Store e
         this.changeListeners.forEach( fnc => fnc() ) 
     }
 
-    async getInstanceByPK(pk: DatabasePrimaryKey): Promise<Store> {
-       
-        const deb = debug.prefix("#DatabaseManager.getInstanceByPK()", "call");
+    getInstanceByPK(pk: DatabasePrimaryKey): Promise<Store> {
+        const deb = debug.prefix("#CDatabaseManager.getInstanceByPK()", "call", pk); 
 
-        try { await this._bounce; }
-        catch( e ) { /* NOP - dont care for the result, just make sure it is finished */ }
-
-        this._bounce = (async () => {
-            this._bounce.state = "busy";
+        return this.pkQueue.add(this, async (pk: DatabasePrimaryKey) => {
             if (!this.instances.has(pk)) { 
                 deb.log("not loaded yet", this.instances)
-
                 const instanceData = await this.loadInstanceData(pk)
                 if(instanceData) {
                     let store = await this.buildStoreFromData(instanceData, false)
                     this.instances.set(pk, store);
-                    this._bounce.state = "idle";
                     return store;
                 }
-                else {
-                    this._bounce.state = "idle";
-                    throw this.error("no_data_for_pk", new Error(`Primary key '${pk}' has no data`));
-                }
+                else { throw this.error("no_data_for_pk", new Error(`Primary key '${pk}' has no data`)); }
+
             }
             else {
                 deb.log("is loadeded")
-                this._bounce.state = "idle";
                 return this.instances.get(pk);
             }
-        })()
-        this._bounce.state = "busy";
-
-        return await this._bounce;
-
+        }, pk);
     }
 
     async createNewEntry(data: Partial<Instance>, key?: CryptoKey): Promise<Store> {
