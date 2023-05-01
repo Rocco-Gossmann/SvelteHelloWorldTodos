@@ -1,37 +1,21 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import Tags, {type TagStore, ITag } from "../data/Tags";
+    import TagManager from "../data/TagManager";
 
-    export let tagstore: TagStore|undefined = undefined;
-    export let tag: ITag|undefined = undefined;
-    export let value = "";
     export let key = "";
 
     export let noremove = false;
     export let noclick = false;
 
-    let oTag: TagStore;
+    let oTag;
     const on = createEventDispatcher()
-
-    $: if(tagstore) oTag = tagstore
     
-    else if(tag)  oTag = Tags.getTagStore(tag); 
+    $: TagManager.findByPK(key).then( tag => oTag = tag);
 
-    else if(key) {
-        try {
-            Tags.findByKey(key).then( t => oTag = t );
-        } catch( err ) { console.error( err ); oTag = undefined; }
-    }
-
-    else if( value ) {
-        try {
-            Tags.findByValue(value).then( t => oTag = t );
-        } catch( err ) { console.error( err ); oTag = undefined; }
-    }
 
 </script>
 
-{#if oTag}
+{#if $oTag}
  <span class="tag" style={`--tagcolor: ${$oTag.color}`}>
     {#if noclick}
         {$oTag.value}

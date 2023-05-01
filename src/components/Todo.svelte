@@ -1,6 +1,4 @@
 <script lang="ts">    
-    import { slide } from "svelte/transition";
-    import Todos, { type ITodo } from "../data/Todos";
     import type { ITag, TagStore } from '../data/Tags';
 
     import Tag from './Tag.svelte';
@@ -8,73 +6,77 @@
     import { toast } from '../lib/components/Toast.svelte';
     import TagInput from "./TagInput.svelte";
 
-    export let todo: ITodo;
+    import TodoManager from './../data/TodoManager'
+
+
+    export let todo; 
+
+    $: todos = TodoManager.store
 
     let showTagInput = false;
 
     const dropTodo = ( todo ) => {
-        if(confirm("remove todo permanently ?"))
-            Todos.remove(todo);
+//        if(confirm("remove todo permanently ?"))
+//            Todos.remove(todo);
     }
-
-    const toggleDone = async (todo: ITodo) => {
-        todo.done = !todo.done; 
-        Todos.set(todo)
+//
+    const toggleDone = async () => {
+       $todo.done = !$todo.done; 
+       $todos = $todos;
     }
-
-    const onTagClick = async (tag: TagStore) => {
-        try { addTag(tag.object); }
-        catch( err ) {
-            toast("cant add tag (See Console)", "alert", 2);
-        }
+//
+    const onTagClick = async (tag) => {
+//        try { addTag(tag.object); }
+//        catch( err ) {
+//            toast("cant add tag (See Console)", "alert", 2);
+//        }
     }
-
+//
     const onTagRemove = async (ev: CustomEvent) => {
-        if(confirm("remove Tag?")) {
-            const oTag: TagStore = ev.detail;
-            todo.tags = todo.tags.filter( (t) => t != oTag.object.key );
-            Todos.set(todo);
-        }
-
+//        if(confirm("remove Tag?")) {
+//            const oTag: TagStore = ev.detail;
+//            todo.tags = todo.tags.filter( (t) => t != oTag.object.key );
+//            Todos.set(todo);
+//        }
+//
     }
-
+//
     const onTagAdd = async (ev: CustomEvent) => {
-        console.log(ev);
-        const oTag: TagStore = ev.detail; 
-
-        if(todo.tags.indexOf(oTag.object.key) == -1) {
-            todo.tags.push(oTag.object.key);
-            Todos.set(todo);
-        }
-
-        showTagInput = false;
+//        const oTag: TagStore = ev.detail; 
+//
+//        if(todo.tags.indexOf(oTag.object.key) == -1) {
+//            todo.tags.push(oTag.object.key);
+//            Todos.set(todo);
+//        }
+//
+//        showTagInput = false;
     }
 
 </script>
 
 <article 
-    class:done={todo.done} 
+    class:done={$todo.done} 
 >
     <span><input type="checkbox" 
-        bind:checked={todo.done} 
-        on:click={() => toggleDone(todo)} /></span>
+        bind:checked={$todo.done} 
+        on:click={() => toggleDone($todo)} /></span>
 
-    <span class="txt">{todo.description}</span>
+    <span class="txt">{$todo.description}</span>
 
     <button on:click|preventDefault={() => dropTodo(todo)} 
         class="fa fa-trash-can" title="delete"></button>
 
     <ul>
-        {#each todo.tags as tag}
+        {#each $todo.tags as tag}
         <li><Tag 
             key={tag} 
             on:click={(ev) => onTagClick(ev.detail)} 
             on:remove={onTagRemove}
-            noremove={todo.done}/></li>
+            noremove={$todo.done}/></li>
         {/each}
     </ul>
 
-    {#if !todo.done}
+    {#if !$todo.done}
         <button on:click|preventDefault={() => showTagInput = !showTagInput} 
             class="fa fa-tag" title="new Tag"></button>
 

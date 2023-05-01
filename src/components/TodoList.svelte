@@ -2,32 +2,35 @@
 
     import { slide, crossfade } from 'svelte/transition'
     import {flip} from 'svelte/animate'
-    import { todos } from "../data/Todos";
     import Todo from './Todo.svelte';
 
-    $: allList = [ ...$todos]
-    $: openList = allList.filter((t)=>!t.done);
-    $: doneList = allList.filter((t)=>t.done);
+    import TodoManager from '../data/TodoManager'
+
+    $: todos = TodoManager.store; 
+    $: console.log("todos changed:", $todos);
+
+    $: openList = $todos.filter((t: any)=>{ console.log("openlist", t); return !t.data.done});
+    $: doneList = $todos.filter((t: any)=>t.data.done);
    
     const [crossSend, crossReceive] = crossfade({ fallback: slide })
 
     const duration = 250
 </script>
 
-{#each openList as todo (todo.id)}
+{#each openList as todo (todo.data.id)}
     <div animate:flip={{duration}} 
-    in:crossReceive|local={{key: todo.id}} 
-    out:crossSend|local={{key: todo.id}} 
+    in:crossReceive|local={{key: todo.data.id}} 
+    out:crossSend|local={{key: todo.data.id}} 
     > 
     <Todo { todo } />
     </div>
 {/each}
 
 <h3>Done:</h3>
-{#each doneList as todo (todo.id)}
+{#each doneList as todo (todo.data.id)}
     <div animate:flip={{duration}} 
-    in:crossReceive|local={{key: todo.id}} 
-    out:crossSend|local={{key: todo.id}} 
+    in:crossReceive|local={{key: todo.data.id}} 
+    out:crossSend|local={{key: todo.data.id}} 
     > 
     <Todo { todo } />
     </div>
