@@ -85,7 +85,8 @@ export abstract class DatabaseManager<Instance extends DatabaseInstance, Store e
        
         const deb = debug.prefix("#DatabaseManager.getInstanceByPK()", "call");
 
-        await this._bounce;
+        try { await this._bounce; }
+        catch( e ) { /* NOP - dont care for the result, just make sure it is finished */ }
 
         this._bounce = (async () => {
             this._bounce.state = "busy";
@@ -93,9 +94,8 @@ export abstract class DatabaseManager<Instance extends DatabaseInstance, Store e
                 deb.log("not loaded yet", this.instances)
 
                 const instanceData = await this.loadInstanceData(pk)
-                let store;
                 if(instanceData) {
-                    store = await this.buildStoreFromData(instanceData, false)
+                    let store = await this.buildStoreFromData(instanceData, false)
                     this.instances.set(pk, store);
                     this._bounce.state = "idle";
                     return store;
