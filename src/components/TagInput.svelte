@@ -16,7 +16,7 @@
     export let noautocreate = false;
 
     const onSubmit = async () => {
-        const deb = debug.prefix("onSubmit()", value);
+        const deb = debug.prefix("#onSubmit()", value);
         
         const pk = await TagInstance.generatePrimaryKey(value);
         deb.log("pk is ", pk)

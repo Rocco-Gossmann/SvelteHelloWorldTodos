@@ -1,7 +1,10 @@
 import { DatabaseInstance, DatabaseInstanceStore, DatabaseManager, type DBE } from "./CDatabaseManager"
 import DB from '../lib/database'
 import cryptography from "../lib/cryptography"
+import DebugModule from "../lib/debug";
 import type { Readable, Subscriber, Unsubscriber } from "svelte/store";
+
+const debug = DebugModule.prefix("TagManager.ts");
 
 const empty_hash = await cryptography.sha256("", true) as string;
 
@@ -62,6 +65,10 @@ export class TagInstance extends DatabaseInstance{
 
     static generatePrimaryKey(value: string): Promise<string> {
         const key = (value || "").trim().toLowerCase();
+        const _debug = debug.prefix("#TagInstance.generatePrimarykey()", value);
+       
+        _debug.log("normlized key is", key); 
+        
         if (!key) throw new TagError(TagError.EMPTY_TAG_KEY);
         return cryptography.sha256( key, true) as Promise<string>
     }

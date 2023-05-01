@@ -85,32 +85,33 @@ export abstract class DatabaseManager<Instance extends DatabaseInstance, Store e
        
         const deb = debug.prefix("#DatabaseManager.getInstanceByPK()", "call");
 
-        if(this._bounce.state == 'busy') {
-            deb.log("is busy => waiting");
-            await this._bounce;
-        }
+        await this._bounce;
 
-        this._bounce = new Promise<Store>( (resolve) => {
+        this._bounce = (async () => {
             this._bounce.state = "busy";
             if (!this.instances.has(pk)) { 
                 deb.log("not loaded yet", this.instances)
 
-                this.loadInstanceData(pk)
-                    .then( instanceData => this.buildStoreFromData(instanceData, false) )
-                    .then( store => {
-                        this.instances.set(pk, store);
-                        this._bounce.state = "idle";
-                        resolve(store);
-                    })
+                const instanceData = await this.loadInstanceData(pk)
+                let store;
+                if(instanceData) {
+                    store = await this.buildStoreFromData(instanceData, false)
+                    this.instances.set(pk, store);
+                    this._bounce.state = "idle";
+                    return store;
+                }
+                else {
+                    this._bounce.state = "idle";
+                    throw this.error("no_data_for_pk", new Error(`Primary key '${pk}' has no data`));
+                }
             }
             else {
                 deb.log("is loadeded")
                 this._bounce.state = "idle";
-                resolve(this.instances.get(pk))
+                return this.instances.get(pk);
             }
-        })
+        })()
         this._bounce.state = "busy";
-
 
         return await this._bounce;
 
