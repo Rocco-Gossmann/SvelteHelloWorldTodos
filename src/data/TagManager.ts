@@ -37,7 +37,7 @@ export class TagInstance extends DatabaseInstance{
         this.version = payload?.version || 2; 
 
         if (payload?.data) {
-            this.data = payload?.data;
+            this.data = payload.data;
             this.value = payload?.value || "encrypted tag"
             this.locked = true;
         }
