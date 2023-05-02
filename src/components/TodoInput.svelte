@@ -1,7 +1,7 @@
 <script lang="ts">
     import Todos, { todos, type ITodo } from '../data/Todos';
     import { toast } from '../lib/components/Toast.svelte';
-    import { tagfilter } from './TagFilter.svelte';
+    import { tagfilter } from '../data/TagFilter';
 
     let todo: ITodo = {
         description: '',

@@ -10,7 +10,9 @@ export class DataSet {
 
 export class DataGroup {
 
-    constructor( t: Table );
+    constructor( t: Table, keyName: string );
 
     findByPK: (key: PrimaryKey) => Promise<DataSet> 
+
+    update: (data: object) => Promise<DataSet>
 };

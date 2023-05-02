@@ -1,50 +1,37 @@
 <script lang="ts">
     import { slide } from 'svelte/transition'
     import { createEventDispatcher } from 'svelte';
-    import Tags, { ITag, TagsError, type TagStore } from '../data/Tags';
     import { toast } from '../lib/components/Toast.svelte';
+    import TagManager from '../data/TagManager';
 
     const on = createEventDispatcher();
 
     export let visible = true;
     export let value = "";
     export let noautocreate = false;
-    let oTag: TagStore;
 
     const onSubmit = async () => {
+        let key: string;
+        try { key = await TagManager.definePKByValue(value); }
+        catch( err ) { toast("can't submit an empty Tag", "alert", 2); return; }
 
-        try { oTag = await Tags.findByValue(value); } 
-        catch ( err ) { 
-            if(err instanceof TagsError && err.message == TagsError.NO_TAG_FOR_KEY) {
-                try { 
-                    if(noautocreate) {
-                        toast("tag is unknown", "alert", 2); 
-                        return
-                    } 
-                    else {
-                        const tag = await ITag.createNew(value);
-                        await tag.insert();
-                        oTag = Tags.getTagStore(tag);
-                    }
-                }
-                catch( err ) {
-                    if(err instanceof TagsError && err.message == TagsError.EMPTY_TAG_KEY) 
-                        toast("can't submit an empty Tag", "alert", 2);
-                    else {
-                        console.error( err )
-                        toast("ERROR: see console", "alert", 2);
-                    }
-                    return
-                }
-            } 
-            else {
-                console.error( err )
-                toast("ERROR: see console", "alert", 2);
+        let tag = await TagManager.findByPK(key);
+        console.log("got tag", tag);
+
+        if(!tag) {
+            if(noautocreate) {
+                toast("tag is unknown", "alert", 2); 
                 return
-            }
+            } 
+
+            const tagdata = {key, value, color: "#73828c"};
+            console.log("Insert TagData", tagdata);
+
+            tag = await TagManager.update(tagdata);
         }
-        
-        on("submit", oTag);
+
+        console.log("submit ", tag);
+        on("submit", tag);
     }
 </script>
 {#if visible}
@@ -67,5 +54,4 @@
     FORM.taginput BUTTON {
         width: auto;
     }
-
 </style>

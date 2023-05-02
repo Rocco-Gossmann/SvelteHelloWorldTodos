@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
     import type { TagStore } from '../data/Tags'
-    import { tagfilter } from './TagFilter.svelte';
+    import { tagfilter } from '../data/TagFilter';
     import { toast } from '../lib/components/Toast.svelte';
 
     export let edittag: Writable<TagStore> = writable();

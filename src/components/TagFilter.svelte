@@ -1,78 +1,33 @@
-<script context="module" lang="ts">
-    import { isArray } from '../lib/utils';
-    import { writable } from 'svelte/store';
-    import { edittag } from './TagEdit.svelte';
-
-    export const tagfilter = writable<string[]>([]);
-
-    export function addTag(tag: ITag) {
-        tagfilter.update( lst => {
-            if(lst.indexOf(tag.key) == -1) {
-                lst.push(tag.key);
-            }
-            return lst;
-        });
-    }
-
-
-    try {
-        let filter = localStorage.getItem("tagfilter");
-        let lastlist = [];
-        if(filter) filter = JSON.parse(filter);
-        if(isArray(filter)) {
-            tagfilter.set(filter);
-            const clearTags = [];
-            (async () => {
-                let tags = await Promise.all(
-                    filter.map( 
-                        (tag) => Tags.findByValue(tag)
-                            .catch( err => {
-                                console.warn(`tag '${tag}' does not exist`)
-                                clearTags.push(tag);
-                            })
-                    )
-                );
-
-                clearTags.forEach((t) => tagfilter.update( list => lastlist = list.filter( t1 => t1 != t)))
-
-                if(isArray(tags))
-                    tags = tags.filter(t=>typeof(t) !== 'undefined');
-
-            })()
-        }
-
-    }
-    catch( err ) { /* NOP */ }
-
-    tagfilter.subscribe ( (lst) => {
-        localStorage.setItem("tagfilter", JSON.stringify(lst));
-        Todos.filter(lst);
-    })
-
-</script>
-
 <script lang="ts">
     import { slide } from 'svelte/transition'
     import Tag from './Tag.svelte';
-    import Tags, { ITag, type TagStore } from '../data/Tags'
-    import Todos from '../data/Todos';
+    import { edittag } from './TagEdit.svelte';
     import TagInput from './TagInput.svelte';
     import TagEdit from './TagEdit.svelte';
     import { key, hasPassword } from '../data/Lock';
+    import { tagfilter } from '../data/TagFilter';
 
     $: visible = ($hasPassword && !$key) ? false : $tagfilter.length > 0;
 
     let tagInput = "";
 
-    const onAddTag = async (ev: CustomEvent) => {
-        let oTag: ITag  = ev.detail.object;
-        addTag(oTag);
-        tagInput = "";
+    function removeTag(ev) {
+        const key = ev?.detail?.data?.key;
+        const index = $tagfilter.indexOf(key);
+        if(index > -1) {
+            $tagfilter.splice(index, 1);
+            $tagfilter = $tagfilter;
+        }
     }
 
-    const removeTag = async (oTag: TagStore) => {
-        if($edittag == oTag) $edittag = undefined;
-        $tagfilter = $tagfilter.filter( (t) => t != oTag.object.key );
+    function onAddTag(ev) {
+        const key = ev?.detail?.data?.key;
+
+        if(key && $tagfilter.indexOf(key) == -1) {
+            $tagfilter.push(key);
+            $tagfilter = $tagfilter;
+        }
+        else console.error("missing key", ev, key)
     }
 
 </script>
@@ -92,7 +47,7 @@
         {#each $tagfilter as tag}
             <Tag 
                 key={tag} 
-                on:remove={ (ev) => removeTag(ev.detail) } 
+                on:remove={ removeTag } 
                 on:click={ (ev) => {
                     console.log(ev.detail, $edittag, edittag)
                     edittag.set(edittag && $edittag==ev.detail ? undefined : ev.detail) 

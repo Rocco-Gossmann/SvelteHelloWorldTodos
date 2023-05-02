@@ -7,7 +7,7 @@ class CTodoManager extends DataGroup {
     private _store: Writable<DataSet[]>;
 
     constructor() {
-        super(db.todos)
+        super(db.todos, "id")
         this._store = writable([]);
 
         db.todos.toCollection().keys().then(arr => {

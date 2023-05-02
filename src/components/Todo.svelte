@@ -2,8 +2,8 @@
     import type { ITag, TagStore } from '../data/Tags';
 
     import Tag from './Tag.svelte';
-    import { addTag } from './TagFilter.svelte';
     import { toast } from '../lib/components/Toast.svelte';
+    import { tagfilter } from '../data/TagFilter';
     import TagInput from "./TagInput.svelte";
 
     import TodoManager from './../data/TodoManager'
@@ -26,10 +26,11 @@
     }
 //
     const onTagClick = async (tag) => {
-//        try { addTag(tag.object); }
-//        catch( err ) {
-//            toast("cant add tag (See Console)", "alert", 2);
-//        }
+        const key = tag.data.key;
+        if($tagfilter.indexOf(key) == -1) {
+            $tagfilter.push(key)
+            $tagfilter = $tagfilter
+        }
     }
 //
     const onTagRemove = async (ev: CustomEvent) => {

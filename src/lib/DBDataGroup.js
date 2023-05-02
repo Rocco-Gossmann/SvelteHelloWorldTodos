@@ -7,8 +7,10 @@
 *   # stores are identfied by a single key (string or number)
 *   # requested stores are cached.
 *   # should the same key be requested multiple times, the cached version is returned
-*   - updating the stores data always updates the data in the dataset
+*   # updating the stores data always updates the data in the dataset
 *
+* - insertion of new datasets yeld a store of that dataset 
+*    
 */
 
 
@@ -65,10 +67,12 @@ export class DataGroup {
     table;
 
     /** Constructor
-    * @param {import("dexie").Table}
+    * @param {import("dexie").Table} table
+    * @param {string} keyName
     */
-    constructor(table) {
+    constructor(table, keyName) {
         this.table = table;
+        this.keyName = keyName;
     }
 
     /** finds a dataset based on its primary key
@@ -79,8 +83,11 @@ export class DataGroup {
         return await this.queue.add(
             this,
             (pk) => this.table.get(pk).then(data => {
+
+                if(!data) return Promise.resolve(undefined);
+
                 if (this.dataset.has(key)) {
-                    console.log("found in cache", key, this.dataset.get(key));
+                    console.log("found in cache", key, this.dataset.get(key), this.dataset);
                     return this.dataset.get(key);
                 }
                 else {
@@ -92,6 +99,35 @@ export class DataGroup {
             }),
             key
         );
+    }
+
+    /** updates or creates a dataset
+    * @param {PrimaryKey} key
+    * @param {object} data
+    * @returns {Promise.<DataSet>}
+    */
+    async update(data) {
+
+        if(!data[this.keyName]) 
+            throw new Error(`given data is missing field ${this.keyName}`);
+
+        const key = data[this.keyName]
+
+        /** @type {DataSet} */
+        const existing = await this.findByPK(key);
+
+        if(existing) {
+            let obj = existing.data;
+            for(let a of key) obj[a] = data[a];
+            existing.data = obj;
+            return existing;
+        }
+        else {
+            if(await this.table.put(data)) 
+                return await this.findByPK(key);    
+            else throw new Error("failed to insert data");
+        }
+
     }
 }
 
