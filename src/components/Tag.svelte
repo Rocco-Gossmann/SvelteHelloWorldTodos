@@ -8,12 +8,14 @@
     export let noclick = false;
 
     let oTag;
+
     const on = createEventDispatcher()
     
     $: TagManager.findByPK(key).then( tag => oTag = tag);
 
 
 </script>
+
 
 {#if $oTag}
  <span class="tag" style={`--tagcolor: ${$oTag.color}`}>
@@ -41,7 +43,7 @@
         border: 2px solid var(--tagcolor);
 
         & > A{
-            color: black;
+            color: var(--constrast);
         }
 
     }
