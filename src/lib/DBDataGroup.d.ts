@@ -3,9 +3,10 @@ import type { Subscriber, Unsubscriber } from "svelte/store";
 
 export type PrimaryKey = string | number;
 
-export class DataSet {
+export class DataSet<T> {
     subscribe: (s: Subscriber) => Unsubscriber;
     set: (o: object) => void;
+    data: T;
 }
 
 export class DataGroup {
@@ -15,4 +16,6 @@ export class DataGroup {
     findByPK: (key: PrimaryKey) => Promise<DataSet> 
 
     update: (data: object) => Promise<DataSet>
+
+    drop: (keyOrDataSet: PrimaryKey|DataSet) => Promise<void> 
 };

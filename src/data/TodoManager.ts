@@ -2,9 +2,20 @@ import { writable, type Writable } from "svelte/store";
 import db from "../lib/database";
 import { DataGroup, DataSet, type PrimaryKey } from '../lib/DBDataGroup';;
 
-class CTodoManager extends DataGroup {
+interface Todo {
+    id: number
+    [attr:string]: any
+}
 
-    private _store: Writable<DataSet[]>;
+class CTodoManager extends DataGroup {
+    
+    private _store: Writable<DataSet<Todo>[]>;
+
+    async afterDrop(dataset:DataSet<Todo>) {
+        this._store.update( store => {
+            return store.filter( ds => ds.data.id != dataset.data.id );
+        } )
+    }
 
     constructor() {
         super(db.todos, "id")

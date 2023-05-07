@@ -40,8 +40,8 @@ export class DataSet {
     }
 
     get data() { return this._data; }
-    set data(dat) { 
-        this._data = dat 
+    set data(dat) {
+        this._data = dat
         this.set(this._data)
     }
 
@@ -66,6 +66,23 @@ export class DataGroup {
     * @type {import("dexie").Table} */
     table;
 
+    /** Called before a dataset is deleted to give child classes a chance
+    * to prevent unwanted deletions
+    * @protected
+    * @param {DataSet} dataset - the dataset, that is going to be deleted 
+    * @return {Promise.<boolean>}
+    */
+    validateDrop(dataset) { return Promise.resolve(true); }
+
+
+    /** Called after a deletion took place, to allow child classes to clean up 
+    * their dependend data
+    * @protected
+    * @param {DataSet} dataset - the dataset, that is going to be deleted 
+    * @return {Promise.<void>}
+    */
+    async afterDrop(dataset) { }
+
     /** Constructor
     * @param {import("dexie").Table} table
     * @param {string} keyName
@@ -84,7 +101,7 @@ export class DataGroup {
             this,
             (pk) => this.table.get(pk).then(data => {
 
-                if(!data) return Promise.resolve(undefined);
+                if (!data) return Promise.resolve(undefined);
 
                 if (this.dataset.has(key)) {
                     console.log("found in cache", key, this.dataset.get(key), this.dataset);
@@ -108,7 +125,7 @@ export class DataGroup {
     */
     async update(data) {
 
-        if(!data[this.keyName]) 
+        if (!data[this.keyName])
             throw new Error(`given data is missing field ${this.keyName}`);
 
         const key = data[this.keyName]
@@ -116,18 +133,34 @@ export class DataGroup {
         /** @type {DataSet} */
         const existing = await this.findByPK(key);
 
-        if(existing) {
+        if (existing) {
             let obj = existing.data;
-            for(let a of key) obj[a] = data[a];
+            for (let a of key) obj[a] = data[a];
             existing.data = obj;
             return existing;
         }
         else {
-            if(await this.table.put(data)) 
-                return await this.findByPK(key);    
+            if (await this.table.put(data))
+                return await this.findByPK(key);
             else throw new Error("failed to insert data");
         }
 
+    }
+
+    /** removes an item from the datagroup
+    * @param {PrimaryKey|DataSet} key
+    */
+    async drop(keyOrDataSet) {
+
+        if(!(keyOrDataSet instanceof DataSet))
+            keyOrDataSet = this.findByPK(keyOrDataSet);
+
+        const key = keyOrDataSet[this.keyName];
+
+        if (await this.validateDrop(keyOrDataSet)) {
+            await this.table.delete(key);
+            await this.afterDrop(keyOrDataSet);
+        }
     }
 }
 
