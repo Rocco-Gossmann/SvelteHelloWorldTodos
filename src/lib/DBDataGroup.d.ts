@@ -14,7 +14,6 @@ interface DataGroupConstructorOptions {
 }
 
 export class DataGroup {
-
     constructor( t: Table, opts: DataGroupConstructorOptions );
 
     findByPK: (key: PrimaryKey) => Promise<DataSet> 
@@ -22,4 +21,8 @@ export class DataGroup {
     update: (data: object) => Promise<DataSet>
 
     drop: (keyOrDataSet: PrimaryKey|DataSet) => Promise<void> 
+
+    protected validateDrop(ds: DataSet): Promise<boolean>;
+
+    protected afterDrop(ds: DataSet): Promise<any>;
 };

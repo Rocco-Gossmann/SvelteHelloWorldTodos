@@ -3,6 +3,7 @@ import { DataGroup, DataSet, type PrimaryKey } from '../lib/DBDataGroup';;
 import cryptography from "../lib/cryptography";
 
 class CTagManager extends DataGroup {
+
     constructor() {
         super(db.tags, { idField: "key" })
     }
