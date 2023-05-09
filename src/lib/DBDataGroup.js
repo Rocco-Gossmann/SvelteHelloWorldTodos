@@ -108,7 +108,7 @@ export class DataGroup {
 
     /** finds a dataset based on its primary key
     * @param {PrimaryKey} key
-    * @returns Promise.<DataStore>
+    * @returns {Promise.<DataStore>}
     */
     async findByPK(key) {
         return await this.queue.add(
@@ -167,7 +167,7 @@ export class DataGroup {
         if (!(keyOrDataSet instanceof DataSet))
             keyOrDataSet = this.findByPK(keyOrDataSet);
 
-        const key = keyOrDataSet[this.keyName];
+        const key = keyOrDataSet.data[this.keyName];
 
         if (await this.validateDrop(keyOrDataSet)) {
             await this.table.delete(key);

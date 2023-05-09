@@ -1,6 +1,5 @@
 <script lang="ts">
     import Tag from "./Tag.svelte";
-    import { toast } from "../lib/components/Toast.svelte";
     import { tagfilter } from "../data/TagFilter";
     import TagInput from "./TagInput.svelte";
 
@@ -13,10 +12,9 @@
 
     let showTagInput = false;
 
-    const dropTodo = (todo: DataSet) => {
-        TodoManager.drop(todo);
-        //        if(confirm("remove todo permanently ?"))
-        //            Todos.remove(todo);
+    const dropTodo = (todo:unknown) => {
+        if(confirm("remove todo permanently ?"))
+            TodoManager.drop(todo);
     };
 
     const toggleDone = async () => {
@@ -24,7 +22,7 @@
         $todos = $todos;
     };
 
-    const onTagClick = async (tag) => {
+    const onTagClick = async (tag: DataSet<Tag>) => {
         const key = tag.data.key;
         if ($tagfilter.indexOf(key) == -1) {
             $tagfilter.push(key);
