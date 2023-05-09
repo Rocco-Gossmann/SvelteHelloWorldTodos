@@ -4,7 +4,7 @@ import cryptography from "../lib/cryptography";
 
 class CTagManager extends DataGroup {
     constructor() {
-        super(db.tags, "key")
+        super(db.tags, { idField: "key" })
     }
 
     definePKByValue(value: string): Promise<string> {

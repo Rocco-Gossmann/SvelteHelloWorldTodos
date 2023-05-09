@@ -9,9 +9,13 @@ export class DataSet<T> {
     data: T;
 }
 
+interface DataGroupConstructorOptions {
+    idField: string,
+}
+
 export class DataGroup {
 
-    constructor( t: Table, keyName: string );
+    constructor( t: Table, opts: DataGroupConstructorOptions );
 
     findByPK: (key: PrimaryKey) => Promise<DataSet> 
 

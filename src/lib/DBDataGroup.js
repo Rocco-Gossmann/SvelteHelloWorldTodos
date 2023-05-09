@@ -10,7 +10,6 @@
 *   # updating the stores data always updates the data in the dataset
 *
 * - insertion of new datasets yeld a store of that dataset 
-*    
 */
 
 
@@ -44,9 +43,13 @@ export class DataSet {
         this._data = dat
         this.set(this._data)
     }
-
 }
 
+/** 
+* @typedef DataGroupConstructorOptions
+* @type {object}
+* @property {string} idField
+*/
 
 /** @class 
 * @property {Map.<PrimaryKey, DataStore>} datasets
@@ -65,6 +68,13 @@ export class DataGroup {
     /** @private 
     * @type {import("dexie").Table} */
     table;
+
+    /** @private */
+    keyName = "";
+
+    /** @private */
+    autoIncrement = false;
+
 
     /** Called before a dataset is deleted to give child classes a chance
     * to prevent unwanted deletions
@@ -85,11 +95,15 @@ export class DataGroup {
 
     /** Constructor
     * @param {import("dexie").Table} table
-    * @param {string} keyName
+    * @param {DataGroupConstructorOptions} options
     */
-    constructor(table, keyName) {
+    constructor(table, options) {
         this.table = table;
-        this.keyName = keyName;
+
+        if(options.idField)
+            this.keyName = options.idField;
+
+        if(options.autoIncrement) this.autoInrement = true;
     }
 
     /** finds a dataset based on its primary key
@@ -124,7 +138,6 @@ export class DataGroup {
     * @returns {Promise.<DataSet>}
     */
     async update(data) {
-
         if (!data[this.keyName])
             throw new Error(`given data is missing field ${this.keyName}`);
 
@@ -135,7 +148,7 @@ export class DataGroup {
 
         if (existing) {
             let obj = existing.data;
-            for (let a of key) obj[a] = data[a];
+            for (let a of existing) obj[a] = data[a];
             existing.data = obj;
             return existing;
         }
@@ -144,7 +157,6 @@ export class DataGroup {
                 return await this.findByPK(key);
             else throw new Error("failed to insert data");
         }
-
     }
 
     /** removes an item from the datagroup
@@ -152,7 +164,7 @@ export class DataGroup {
     */
     async drop(keyOrDataSet) {
 
-        if(!(keyOrDataSet instanceof DataSet))
+        if (!(keyOrDataSet instanceof DataSet))
             keyOrDataSet = this.findByPK(keyOrDataSet);
 
         const key = keyOrDataSet[this.keyName];

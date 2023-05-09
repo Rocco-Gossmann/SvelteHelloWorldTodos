@@ -3,8 +3,9 @@ import db from "../lib/database";
 import { DataGroup, DataSet, type PrimaryKey } from '../lib/DBDataGroup';;
 
 interface Todo {
-    id: number
-    [attr:string]: any
+    id: number,
+    done: boolean,
+    description: string,
 }
 
 class CTodoManager extends DataGroup {
@@ -18,7 +19,7 @@ class CTodoManager extends DataGroup {
     }
 
     constructor() {
-        super(db.todos, "id")
+        super(db.todos, { idField: "id" })
         this._store = writable([]);
 
         db.todos.toCollection().keys().then(arr => {
@@ -30,6 +31,15 @@ class CTodoManager extends DataGroup {
                     this._store.set(stores)
                 })
         });
+    }
+
+    async insert(data: Partial<Todo>):Promise<any> {
+        data.id=Date.now()*1000 + Math.floor(Math.random()*800+100);
+        const newDataSet = await this.update(data);
+        this._store.update( stores => {
+            stores.push(newDataSet)
+            return stores;
+        })
     }
 
     public get store() { return this._store; }

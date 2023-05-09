@@ -1,24 +1,24 @@
 <script lang="ts">
-    import Todos, { todos, type ITodo } from '../data/Todos';
     import { toast } from '../lib/components/Toast.svelte';
     import { tagfilter } from '../data/TagFilter';
+    import TodoManager from '../data/TodoManager';
 
     let todo: ITodo = {
-        description: '',
+        description: "",
         done: false,
-        tags: []
+        tags: $tagfilter
     };
     
 
     $: todo.tags = [ ...$tagfilter ];
 
-    const addTodo = () => {
-        if (todo.description.trim() == '') {
+    const addTodo = async () => {
+        if ((todo.description = todo.description.trim()) == '') {
             toast("noting to add", "alert", 2);
         } else {
-            todo.description = todo.description.trim();
-            Todos.set(todo);
-            todo = { description: '', done: false, tags: todo.tags };
+            await TodoManager.insert(todo);
+            todo.description = "";
+            todo.tags.splice(0);
         }
     };
 
