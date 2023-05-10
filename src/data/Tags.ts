@@ -300,41 +300,41 @@ async function encryptITag(key: CryptoKey, tag: Partial<ITag>) {
 }
 
 
-//==============================================================================
-// Data Init
-//==============================================================================
-await Promise.all(
-    (await _db.tags.toArray()).map( async e => {
-        const oTag = new ITag(e);
-        switch (oTag.version) {
-            case module_version:
-            default: break;
-
-            case 0:
-                const oTagOrig = new ITag(e)
-                const newkey = await Cryptography.sha256(oTag.key, true) as string
-                const oldkey = oTag.key
-
-                console.log("update key: ", oldkey, newkey)
-                let todos = await _db.todos.where("tags").anyOf(oldkey).distinct().toArray()
-
-                todos = todos.map(todo => {
-                    todo.tags = todo.tags.map(todotag => todotag == oldkey ? newkey : todotag)
-                    return todo
-                })
-
-                await _db.todos.bulkPut(todos)
-                await oTagOrig.drop();
-                oTag.key = newkey
-
-            case 99999999999999:
-                console.log("tag update: ", oTag.version, "=>", module_version)
-                oTag.version = module_version; 
-                await oTag.insert();
-        }
-    
-    })
-);
+////==============================================================================
+//// Data Init
+////==============================================================================
+//await Promise.all(
+//    (await _db.tags.toArray()).map( async e => {
+//        const oTag = new ITag(e);
+//        switch (oTag.version) {
+//            case module_version:
+//            default: break;
+//
+//            case 0:
+//                const oTagOrig = new ITag(e)
+//                const newkey = await Cryptography.sha256(oTag.key, true) as string
+//                const oldkey = oTag.key
+//
+//                console.log("update key: ", oldkey, newkey)
+//                let todos = await _db.todos.where("tags").anyOf(oldkey).distinct().toArray()
+//
+//                todos = todos.map(todo => {
+//                    todo.tags = todo.tags.map(todotag => todotag == oldkey ? newkey : todotag)
+//                    return todo
+//                })
+//
+//                await _db.todos.bulkPut(todos)
+//                await oTagOrig.drop();
+//                oTag.key = newkey
+//
+//            case 99999999999999:
+//                console.log("tag update: ", oTag.version, "=>", module_version)
+//                oTag.version = module_version; 
+//                await oTag.insert();
+//        }
+//    
+//    })
+//);
 
 key.subscribe((key: CryptoKey) => {
     currentKey = key;

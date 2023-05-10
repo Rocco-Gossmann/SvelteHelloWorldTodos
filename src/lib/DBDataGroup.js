@@ -170,8 +170,11 @@ export class DataGroup {
         const key = keyOrDataSet.data[this.keyName];
 
         if (await this.validateDrop(keyOrDataSet)) {
+            console.log("drop validation success", key);
             await this.table.delete(key);
+            console.log("dropped");
             await this.afterDrop(keyOrDataSet);
+            console.log("drop finished", keyOrDataSet);
         }
     }
 }
