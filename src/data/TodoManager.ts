@@ -21,16 +21,39 @@ class CTodoManager extends DataGroup {
     constructor() {
         super(db.todos, { idField: "id" })
         this._store = writable([]);
+        this.filterStore([]);
+    }
 
-        db.todos.toCollection().keys().then(arr => {
-            Promise.all(arr.map(e => {
-                return this.findByPK(e as PrimaryKey)
-            }))
-                .then(stores => {
-                    console.log("update stores with data", stores);
-                    this._store.set(stores)
-                })
-        });
+    async dropTag(key: string): Promise<void> {
+        await db.todos.toCollection().modify( (todo, ref) => {
+            const i = todo.tags.indexOf(key);
+            if(i !== -1) 
+                todo.tags.splice(i, 1);
+        })
+    }
+
+    async filterStore(filter: string[]): Promise<void> {
+        let query:any = db.todos;
+
+        if(filter.length)
+            query = query.where("tags").anyOf(filter);
+
+        if(filter.length > 1)
+            query = query.filter(ds => {
+                let ok = true;
+                for( let a = 0; a < filter.length; a++) {
+                    if(ds.tags.indexOf(filter[a]) == -1) {
+                        ok = false;
+                        break;
+                    }
+                } 
+                return ok;
+            });
+
+        const keys: string[] = await query.toCollection().keys();
+        this._store.set(await Promise.all(keys.map(k => {
+            return this.findByPK(k as PrimaryKey)
+        })))
     }
 
     async insert(data: Partial<Todo>):Promise<any> {

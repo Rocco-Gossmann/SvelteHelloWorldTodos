@@ -15,6 +15,9 @@ interface DataGroupConstructorOptions {
 }
 
 export class DataGroup<T> {
+
+    protected table: Table
+
     constructor( t: Table, opts: DataGroupConstructorOptions );
 
     findByPK: (key: PrimaryKey) => Promise<DataSet> 
