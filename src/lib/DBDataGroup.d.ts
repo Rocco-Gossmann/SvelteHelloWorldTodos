@@ -7,6 +7,7 @@ export class DataSet<T> {
     subscribe: (s: Subscriber) => Unsubscriber;
     set: (o: object) => void;
     data: T;
+    refresh: () => void;
 }
 
 interface DataGroupConstructorOptions {

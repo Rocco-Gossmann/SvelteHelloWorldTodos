@@ -21,10 +21,9 @@
     }
 
     const saveTag = async () => {
-//        await $edittag.insert(); 
-//        $edittag.notifiySubscribers()
-//        $edittag = undefined;
-//        toast("changes saved", "success", 2);
+        $edittag.refresh();
+        $edittag = undefined;
+        toast("changes saved", "success", 2);
     }
 
 </script>

@@ -43,6 +43,8 @@ export class DataSet {
         this._data = dat
         this.set(this._data)
     }
+
+    refresh() { this.set(this._data) }
 }
 
 /** 
