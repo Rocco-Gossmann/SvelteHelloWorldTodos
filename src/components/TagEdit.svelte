@@ -10,10 +10,12 @@
     import {slide} from 'svelte/transition'
     import { writable, type Writable } from 'svelte/store';
     import TagManager from '../data/TagManager';
+    import TodoManager from '../data/TodoManager';
 
     const dropTag =async () => {
         if($edittag && confirm("deleting the tag here, will remove it from all Todos too. This step can not be undone! Continue?")) {
             await TagManager.drop($edittag)
+            await TodoManager.dropTag($edittag.data.key)
             tagfilter.update( lst => lst.filter( t => t != $edittag.data.key ))
             $edittag = undefined;
             toast("tag removed", "info", 2);
