@@ -1,5 +1,5 @@
 #!/bin/bash
 
-tmux-workspace -n "SvelteKitHelloWorld"  \
-    -s "pnpm run dev --host --open"
+tmux-workspace "SvelteKitHelloWorld" "editor" \
+    -w "Server" -c "pnpm run dev --host --open"
 
