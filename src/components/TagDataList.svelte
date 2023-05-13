@@ -1,6 +1,7 @@
 <script lang="ts">
 	import TagDataListOption from './TagDataListOption.svelte';
-    import { tagsstore } from '../data/Tags';
+
+    import TagManager from '../data/TagManager';
 
 </script>
 <datalist id="available_tags">
