@@ -84,7 +84,7 @@ export class DataGroup {
     * @param {DataSet} dataset - the dataset, that is going to be deleted 
     * @return {Promise.<boolean>}
     */
-    validateDrop(dataset) { return Promise.resolve(true); }
+    async validateDrop(dataset) { return true; }
 
 
     /** Called after a deletion took place, to allow child classes to clean up 
@@ -94,6 +94,14 @@ export class DataGroup {
     * @return {Promise.<void>}
     */
     async afterDrop(dataset) { }
+
+    /** Called after any data was added to the database
+    * @protected
+    * @param {object} dataset - the dataset, that is going to be deleted 
+    * @return {Promise.<void>}
+    */
+    async afterUpdate(data) { }
+
 
     /** Constructor
     * @param {import("dexie").Table} table
@@ -152,11 +160,14 @@ export class DataGroup {
             let obj = existing.data;
             for (let a of existing) obj[a] = data[a];
             existing.data = obj;
+            await this.afterUpdate(data);
             return existing;
         }
         else {
-            if (await this.table.put(data))
+            if (await this.table.put(data)) {
+                await this.afterUpdate(data);
                 return await this.findByPK(key);
+            }
             else throw new Error("failed to insert data");
         }
     }

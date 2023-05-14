@@ -29,4 +29,6 @@ export class DataGroup<T> {
     protected validateDrop(ds: DataSet<T>): Promise<boolean>;
 
     protected afterDrop(ds: DataSet<T>): Promise<any>;
+
+    protected afterUpdate(data: Partial<T>): Promise<any>;
 };
