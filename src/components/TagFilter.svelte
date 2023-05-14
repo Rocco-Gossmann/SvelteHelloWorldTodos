@@ -9,9 +9,7 @@
 
     $: visible = ($hasPassword && !$key) ? false : $tagfilter.length > 0;
 
-    let tagInput = "";
-
-    function removeTag(ev) {
+    function removeTag(ev:CustomEvent) {
         const key = ev?.detail?.data?.key;
         const index = $tagfilter.indexOf(key);
         if(index > -1) {
@@ -20,7 +18,7 @@
         }
     }
 
-    function onAddTag(ev) {
+    function onAddTag(ev:CustomEvent) {
         const key = ev?.detail?.data?.key;
 
         if(key && $tagfilter.indexOf(key) == -1) {
@@ -36,7 +34,7 @@
 <a role="button" href={"#"} on:click|preventDefault={() => visible = !visible }>Tags</a>
 
 {#if visible}
-<TagInput bind:value={tagInput} on:submit={onAddTag} />
+<TagInput on:submit={onAddTag} />
 
 <TagEdit />
 

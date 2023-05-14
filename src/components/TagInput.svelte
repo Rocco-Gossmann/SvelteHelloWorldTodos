@@ -12,11 +12,8 @@
 
     const onSubmit = async () => {
         let key: string;
-        try { 
-            key = await TagManager.definePKByValue(value);
-            value = "";
+        try { key = await TagManager.definePKByValue(value);
         } catch( err ) { toast("can't submit an empty Tag", "alert", 2); return; }
-
 
         let tag = await TagManager.findByPK(key);
 
@@ -27,11 +24,11 @@
             } 
 
             const tagdata = {key, value, color: "#73828c"};
-
             tag = await TagManager.update(tagdata);
         }
 
         on("submit", tag);
+        value = "";
     }
 </script>
 {#if visible}

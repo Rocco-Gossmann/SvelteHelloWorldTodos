@@ -45,10 +45,11 @@ class CTagManager extends DataGroup<TagData> {
     constructor() {
         super(db.tags, { idField: "key" })
 
-        this.valuesStore.update( store => {
-            store.splice(0, store.length);
-            this.table.toCollection().each( item => { store.push(item.value); })        
-            return store;
+        const values = [];
+        this.table.toCollection().each( (tag:TagData) => {
+            values.push(tag.value); 
+        }).then( () => {
+            this.valuesStore.set(values);
         })
     }
 
