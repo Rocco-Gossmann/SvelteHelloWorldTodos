@@ -121,11 +121,15 @@ export class DataGroup {
     * @returns {Promise.<DataStore>}
     */
     async findByPK(key) {
+        const stack = (new Error("")).stack; 
         return await this.queue.add(
             this,
             (pk) => this.table.get(pk).then(data => {
 
-                if (!data) return Promise.resolve(undefined);
+                if (!data) {
+                    console.warn(`Request for pk '${pk}' on table '${this.table.name}' resulted in no data for call `, stack);
+                    return Promise.resolve(undefined);
+                }
 
                 if (this.dataset.has(key)) {
                     return this.dataset.get(key);

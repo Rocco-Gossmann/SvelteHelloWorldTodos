@@ -1,3 +1,4 @@
+import type { Collection } from "dexie";
 import { writable, type Writable } from "svelte/store";
 import db from "../lib/database";
 import { DataGroup, DataSet, type PrimaryKey } from '../lib/DBDataGroup';
@@ -15,7 +16,7 @@ type Todo = DataSet<TodoData>;
 
 class CTodoManager extends DataGroup<TodoData> {
     
-    private _store: Writable<Todo[]>;
+    private _store: Writable<Todo[]> = writable([]);
 
 
     async afterDrop(dataset:Todo) {
@@ -26,7 +27,6 @@ class CTodoManager extends DataGroup<TodoData> {
 
     constructor() {
         super(db.todos, { idField: "id" })
-        this._store = writable([]);
         this.filterStore([]);
     }
 
@@ -53,7 +53,6 @@ class CTodoManager extends DataGroup<TodoData> {
     async filterStore(filter: string[]): Promise<void> {
         let query:any = db.todos;
 
-
         if(filter.length) {
             query = query.where("tags").anyOf(filter);
 
@@ -72,10 +71,13 @@ class CTodoManager extends DataGroup<TodoData> {
         }
         else query = query.toCollection()
 
-        const keys: string[] = await query.keys();
-        this._store.set(await Promise.all(keys.map(k => {
-            return this.findByPK(k as PrimaryKey)
-        })))
+
+        const keys: Todo[] = await Promise.all((await query.primaryKeys()).map( k => {
+            let str = this.findByPK(k as PrimaryKey)
+            return str;
+        }))
+
+        this._store.set(keys);
     }
 
     async insert(data: Partial<TodoData>):Promise<any> {
