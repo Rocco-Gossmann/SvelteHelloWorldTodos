@@ -16,7 +16,6 @@
         catch( err ) { toast("can't submit an empty Tag", "alert", 2); return; }
 
         let tag = await TagManager.findByPK(key);
-        console.log("got tag", tag);
 
         if(!tag) {
             if(noautocreate) {
@@ -25,12 +24,10 @@
             } 
 
             const tagdata = {key, value, color: "#73828c"};
-            console.log("Insert TagData", tagdata);
 
             tag = await TagManager.update(tagdata);
         }
 
-        console.log("submit ", tag);
         on("submit", tag);
     }
 </script>
@@ -51,7 +48,7 @@
         grid-gap: var(--spacing);
     }
 
-    FORM.taginput BUTTON {
+   FORM.taginput BUTTON {
         width: auto;
     }
 </style>

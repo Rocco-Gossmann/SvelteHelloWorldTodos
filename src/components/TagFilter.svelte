@@ -49,7 +49,6 @@
                 key={tag} 
                 on:remove={ removeTag } 
                 on:click={ (ev) => {
-                    console.log(ev.detail, $edittag, edittag)
                     edittag.set(edittag && $edittag==ev.detail ? undefined : ev.detail) 
                 }}
             />

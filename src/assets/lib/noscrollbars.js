@@ -10,7 +10,6 @@ window.addEventListener("load", () => {
 
     // The difference in with, is the Scrollbar
     const delta = (oe.offsetWidth - ie.offsetWidth);
-    console.log("Scrollbars", delta);
 
     // Clean DOM
     oe.parentNode.removeChild(oe);

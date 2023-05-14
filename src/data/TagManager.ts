@@ -3,8 +3,6 @@ import { DataGroup, DataSet } from '../lib/DBDataGroup';
 import cryptography from "../lib/cryptography";
 import { writable, type Writable } from "svelte/store";
 
-import { SvelteObjectStore } from "../lib/SvelteObjectStore";
-
 export class TagData {
     key: string;
     color?: string;
@@ -22,7 +20,6 @@ class CTagManager extends DataGroup<TagData> {
     /** A list of all availabile values in the current TagList 
     * (Mainly used for The Autocomplete Datalist right now */
     private valuesStore: Writable<string[]> = writable([]);
-  
 
     protected async afterUpdate(data: Partial<TagData>): Promise<any> {
         this.valuesStore.update( store => {

@@ -128,12 +128,10 @@ export class DataGroup {
                 if (!data) return Promise.resolve(undefined);
 
                 if (this.dataset.has(key)) {
-                    console.log("found in cache", key, this.dataset.get(key), this.dataset);
                     return this.dataset.get(key);
                 }
                 else {
                     const ds = new DataSet(this.table, data);
-                    console.log("load into cache", ds);
                     this.dataset.set(pk, ds);
                     return Promise.resolve(ds);
                 }
@@ -183,11 +181,8 @@ export class DataGroup {
         const key = keyOrDataSet.data[this.keyName];
 
         if (await this.validateDrop(keyOrDataSet)) {
-            console.log("drop validation success", key);
             await this.table.delete(key);
-            console.log("dropped");
             await this.afterDrop(keyOrDataSet);
-            console.log("drop finished", keyOrDataSet);
         }
     }
 }

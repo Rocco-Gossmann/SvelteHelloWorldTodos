@@ -4,9 +4,6 @@
     import { password2CryptoKey } from '../lib/cryptography';
     import { key, hasPassword } from '../data/Lock';
 
-    import Tags from '../data/Tags';
-    import Todos from '../data/Todos';
-
     let unlocked = localStorage.getItem("haslock") == undefined;
     let showUnlockDialog = false;
 
@@ -15,6 +12,7 @@
     let passwordInput = "";
 
     const toggleLock = () => {
+        throw new Error("not implemented"); return;
         if(unlocked) {
             if($hasPassword) {
                 key.set(undefined);
@@ -32,6 +30,8 @@
     }
 
     const onUnLock = async () => {
+
+        throw new Error("not implemented"); return;
 
         if(passwordInput.trim().length != passwordInput.length) {
             toast("password can't contain whitespaces at the start or end", "error", 4);
@@ -65,6 +65,7 @@
     }
 
     const deleteLock = async () => {
+        throw new Error("not implemented"); return;
         if($key && confirm("this will remove the password protectedion from your todos. Continue?")) {
             await Tags.encryptAll(undefined, $key);
             await Todos.encryptAll(undefined, $key);

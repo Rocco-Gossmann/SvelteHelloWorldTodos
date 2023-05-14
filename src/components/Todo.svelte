@@ -41,7 +41,6 @@
     };
 
     const onTagAdd = async (ev: CustomEvent) => {
-        console.log($todo.tags, ev.detail.data.key);
         if ($todo.tags.indexOf(ev.detail.data.key) == -1) {
             $todo.tags.push(ev.detail.data.key);
             $todo.tags = $todo.tags.filter((t: any) => t);

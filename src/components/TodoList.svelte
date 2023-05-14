@@ -7,8 +7,6 @@
     import TodoManager from '../data/TodoManager'
 
     $: todos = TodoManager.store; 
-    $: console.log("todos changed:", $todos);
-
     $: openList = $todos.filter((t: any)=>{ console.log("openlist", t); return !t.data.done});
     $: doneList = $todos.filter((t: any)=>t.data.done);
    
