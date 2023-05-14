@@ -12,8 +12,11 @@
 
     const onSubmit = async () => {
         let key: string;
-        try { key = await TagManager.definePKByValue(value); }
-        catch( err ) { toast("can't submit an empty Tag", "alert", 2); return; }
+        try { 
+            key = await TagManager.definePKByValue(value);
+            value = "";
+        } catch( err ) { toast("can't submit an empty Tag", "alert", 2); return; }
+
 
         let tag = await TagManager.findByPK(key);
 
