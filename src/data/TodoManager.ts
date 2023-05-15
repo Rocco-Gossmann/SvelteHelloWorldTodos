@@ -1,4 +1,4 @@
-import type { Collection } from "dexie";
+import type { Table, Collection } from "dexie";
 import { writable, type Writable } from "svelte/store";
 import db from "../lib/database";
 import { DataGroup, DataSet, type PrimaryKey } from '../lib/DBDataGroup';
@@ -18,17 +18,13 @@ class CTodoManager extends DataGroup<TodoData> {
     
     private _store: Writable<Todo[]> = writable([]);
 
-
     async afterDrop(dataset:Todo) {
         this._store.update( store => {
             return store.filter( ds => ds.data.id != dataset.data.id );
         } )
     }
 
-    constructor() {
-        super(db.todos, { idField: "id" })
-        this.filterStore([]);
-    }
+    constructor() { super(db.todos, { idField: "id" }) }
 
     async dropTag(key: string): Promise<void> {
         await db.todos.toCollection().modify( (todo: TodoData) => {
@@ -51,13 +47,16 @@ class CTodoManager extends DataGroup<TodoData> {
     }
 
     async filterStore(filter: string[]): Promise<void> {
+
         let query:any = db.todos;
 
         if(filter.length) {
-            query = query.where("tags").anyOf(filter);
+            query = (query as Table).where("id").anyOf(
+                await (query as Table).where("tags").anyOf(filter).primaryKeys()
+            );
 
             if(filter.length > 1)
-                query = query.filter( (ds:TodoData) => {
+                query = (query as Collection).and( (ds:TodoData) => {
                     let ok = true;
                     for( let a = 0; a < filter.length; a++) {
                         if(ds.tags.indexOf(filter[a]) == -1) {
@@ -71,13 +70,13 @@ class CTodoManager extends DataGroup<TodoData> {
         }
         else query = query.toCollection()
 
-
-        const keys: Todo[] = await Promise.all((await query.primaryKeys()).map( k => {
+        const keys = await (query as Collection).primaryKeys();
+        const data: Todo[] = await Promise.all(keys.map( (k:number) => {
             let str = this.findByPK(k as PrimaryKey)
             return str;
         }))
 
-        this._store.set(keys);
+        this._store.set(data);
     }
 
     async insert(data: Partial<TodoData>):Promise<any> {

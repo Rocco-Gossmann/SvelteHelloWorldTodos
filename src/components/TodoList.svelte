@@ -1,14 +1,13 @@
 <script lang="ts">
-
     import { slide, crossfade } from 'svelte/transition'
     import {flip} from 'svelte/animate'
     import Todo from './Todo.svelte';
 
     import TodoManager from '../data/TodoManager'
 
-    $: todos = TodoManager.store; 
-    $: openList = $todos.filter((t: any)=>{ console.log("openlist", t); return !t.data.done});
-    $: doneList = $todos.filter((t: any)=>t.data.done);
+    $: todos    = TodoManager.store; 
+    $: openList = $todos.filter((t: any)=>!t.data.done);
+    $: doneList = $todos.filter((t: any)=> t.data.done);
    
     const [crossSend, crossReceive] = crossfade({ fallback: slide })
 
