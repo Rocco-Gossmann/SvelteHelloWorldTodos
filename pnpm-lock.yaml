@@ -12,12 +12,15 @@ devDependencies:
   '@tsconfig/svelte':
     specifier: ^3.0.0
     version: 3.0.0
+  '@types/node':
+    specifier: ^20.1.5
+    version: 20.1.5
   svelte:
     specifier: ^3.55.1
     version: 3.55.1
   svelte-check:
     specifier: ^2.10.3
-    version: 2.10.3(@babel/core@7.21.5)(svelte@3.55.1)
+    version: 2.10.3(svelte@3.55.1)
   tslib:
     specifier: ^2.5.0
     version: 2.5.0
@@ -26,10 +29,10 @@ devDependencies:
     version: 4.9.3
   vite:
     specifier: ^4.1.0
-    version: 4.1.0
+    version: 4.1.0(@types/node@20.1.5)
   vite-plugin-pwa:
     specifier: ^0.14.4
-    version: 0.14.4(vite@4.1.0)(workbox-build@6.5.4)(workbox-window@6.5.4)
+    version: 0.14.4(vite@4.1.0)
 
 packages:
 
@@ -1568,7 +1571,7 @@ packages:
       magic-string: 0.27.0
       svelte: 3.55.1
       svelte-hmr: 0.15.1(svelte@3.55.1)
-      vite: 4.1.0
+      vite: 4.1.0(@types/node@20.1.5)
       vitefu: 0.2.4(vite@4.1.0)
     transitivePeerDependencies:
       - supports-color
@@ -1586,8 +1589,8 @@ packages:
     resolution: {integrity: sha512-LG4opVs2ANWZ1TJoKc937iMmNstM/d0ae1vNbnBvBhqCSezgVUOzcLCqbI5elV8Vy6WKwKjaqR+zO9VKirBBCA==}
     dev: true
 
-  /@types/node@18.16.3:
-    resolution: {integrity: sha512-OPs5WnnT1xkCBiuQrZA4+YAV4HEJejmHneyraIaxsbev5yCEr6KMwINNFP9wQeFIw8FWcoTqF3vQsa5CDaI+8Q==}
+  /@types/node@20.1.5:
+    resolution: {integrity: sha512-IvGD1CD/nego63ySR7vrAKEX3AJTcmrAN2kn+/sDNLi1Ff5kBzDeEdqWDplK+0HAEoLYej137Sk0cUU8OLOlMg==}
     dev: true
 
   /@types/pug@2.0.6:
@@ -1597,7 +1600,7 @@ packages:
   /@types/resolve@1.17.1:
     resolution: {integrity: sha512-yy7HuzQhj0dhGpD8RLXSZWEkLsV9ibvxvi6EiJ3bkqLAO1RGo0WbkWQiwpRlSFymTJRz0d3k5LM3kkx8ArDbLw==}
     dependencies:
-      '@types/node': 18.16.3
+      '@types/node': 20.1.5
     dev: true
 
   /@types/sass@1.45.0:
@@ -2400,7 +2403,7 @@ packages:
     resolution: {integrity: sha512-KWYVV1c4i+jbMpaBC+U++4Va0cp8OisU185o73T1vo99hqi7w8tSJfUXYswwqqrjzwxa6KpRK54WhPvwf5w6PQ==}
     engines: {node: '>= 10.13.0'}
     dependencies:
-      '@types/node': 18.16.3
+      '@types/node': 20.1.5
       merge-stream: 2.0.0
       supports-color: 7.2.0
     dev: true
@@ -2938,7 +2941,7 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
-  /svelte-check@2.10.3(@babel/core@7.21.5)(svelte@3.55.1):
+  /svelte-check@2.10.3(svelte@3.55.1):
     resolution: {integrity: sha512-Nt1aWHTOKFReBpmJ1vPug0aGysqPwJh2seM1OvICfM2oeyaA62mOiy5EvkXhltGfhCcIQcq2LoE0l1CwcWPjlw==}
     hasBin: true
     peerDependencies:
@@ -2951,7 +2954,7 @@ packages:
       picocolors: 1.0.0
       sade: 1.8.1
       svelte: 3.55.1
-      svelte-preprocess: 4.10.7(@babel/core@7.21.5)(svelte@3.55.1)(typescript@4.9.3)
+      svelte-preprocess: 4.10.7(svelte@3.55.1)(typescript@4.9.3)
       typescript: 4.9.3
     transitivePeerDependencies:
       - '@babel/core'
@@ -2975,7 +2978,7 @@ packages:
       svelte: 3.55.1
     dev: true
 
-  /svelte-preprocess@4.10.7(@babel/core@7.21.5)(svelte@3.55.1)(typescript@4.9.3):
+  /svelte-preprocess@4.10.7(svelte@3.55.1)(typescript@4.9.3):
     resolution: {integrity: sha512-sNPBnqYD6FnmdBrUmBCaqS00RyCsCpj2BG58A1JBswNF7b0OKviwxqVrOL/CKyJrLSClrSeqQv5BXNg2RUbPOw==}
     engines: {node: '>= 9.11.2'}
     requiresBuild: true
@@ -3016,7 +3019,6 @@ packages:
       typescript:
         optional: true
     dependencies:
-      '@babel/core': 7.21.5
       '@types/pug': 2.0.6
       '@types/sass': 1.45.0
       detect-indent: 6.1.0
@@ -3165,26 +3167,25 @@ packages:
       punycode: 2.3.0
     dev: true
 
-  /vite-plugin-pwa@0.14.4(vite@4.1.0)(workbox-build@6.5.4)(workbox-window@6.5.4):
+  /vite-plugin-pwa@0.14.4(vite@4.1.0):
     resolution: {integrity: sha512-M7Ct0so8OlouMkTWgXnl8W1xU95glITSKIe7qswZf1tniAstO2idElGCnsrTJ5NPNSx1XqfTCOUj8j94S6FD7Q==}
     peerDependencies:
       vite: ^3.1.0 || ^4.0.0
-      workbox-build: ^6.5.4
-      workbox-window: ^6.5.4
     dependencies:
       '@rollup/plugin-replace': 5.0.2(rollup@3.21.2)
       debug: 4.3.4
       fast-glob: 3.2.12
       pretty-bytes: 6.1.0
       rollup: 3.21.2
-      vite: 4.1.0
+      vite: 4.1.0(@types/node@20.1.5)
       workbox-build: 6.5.4
       workbox-window: 6.5.4
     transitivePeerDependencies:
+      - '@types/babel__core'
       - supports-color
     dev: true
 
-  /vite@4.1.0:
+  /vite@4.1.0(@types/node@20.1.5):
     resolution: {integrity: sha512-YoUKE/9bbK4C8ZeSYMDDEF8H5aypmWUq4WisftDhntR1gkI2zt2SGT/5Wd2xu6ZoVXkCyO3U4844KWG9e4nFoQ==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
@@ -3209,6 +3210,7 @@ packages:
       terser:
         optional: true
     dependencies:
+      '@types/node': 20.1.5
       esbuild: 0.16.17
       postcss: 8.4.23
       resolve: 1.22.2
@@ -3225,7 +3227,7 @@ packages:
       vite:
         optional: true
     dependencies:
-      vite: 4.1.0
+      vite: 4.1.0(@types/node@20.1.5)
     dev: true
 
   /webidl-conversions@4.0.2:

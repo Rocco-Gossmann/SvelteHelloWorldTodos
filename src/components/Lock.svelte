@@ -3,6 +3,8 @@
     import { toast } from '../lib/components/Toast.svelte';
     import { password2CryptoKey } from '../lib/cryptography';
     import { key, hasPassword } from '../data/Lock';
+    import TagManager from '../data/TagManager';
+    import TodoManager from '../data/TodoManager';
 
     let unlocked = localStorage.getItem("haslock") == undefined;
     let showUnlockDialog = false;
@@ -12,7 +14,6 @@
     let passwordInput = "";
 
     const toggleLock = () => {
-        throw new Error("not implemented"); return;
         if(unlocked) {
             if($hasPassword) {
                 key.set(undefined);
@@ -30,8 +31,6 @@
     }
 
     const onUnLock = async () => {
-
-        throw new Error("not implemented"); return;
 
         if(passwordInput.trim().length != passwordInput.length) {
             toast("password can't contain whitespaces at the start or end", "error", 4);
@@ -51,8 +50,8 @@
                 passwordInput = "";
             }
             else {
-                await Tags.encryptAll(newkey, $key);
-                await Todos.encryptAll(newkey, $key);
+                await TagManager.encryptAll(newkey, $key);
+                await TodoManager.encryptAll(newkey, $key);
                 hasPassword.set(true);
                 localStorage.setItem("haslock", "1");
                 key.set(undefined);
@@ -104,9 +103,7 @@
 
             <input type="password" bind:value={passwordInput} />
 
-            <button type="submit">
-                OK
-            </button>
+            <button type="submit"> OK </button>
 
         </form>
     </article>

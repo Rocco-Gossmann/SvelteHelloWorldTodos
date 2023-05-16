@@ -1,9 +1,14 @@
 import { writable } from "svelte/store";
-import { isArray } from "../lib/utils";
 
-export const tagfilter = writable<string[]>([]);
 
-export function addTag(tag: string) {
+/** @type {import("svelte/store").Writable<string[]>} */
+export const tagfilter = writable([]);
+
+/**
+ * adds a Tag to filter
+ * @param {string} tag - the key of the tag to add
+ */
+export function addTag(tag) {
     tagfilter.update( lst => {
         if(lst.indexOf(tag) == -1) {
             lst.push(tag);
@@ -15,7 +20,7 @@ export function addTag(tag: string) {
 try {
     let filter = localStorage.getItem("tagfilter");
     if(filter) filter = JSON.parse(filter);
-    if(isArray(filter)) tagfilter.set(filter);
+    if(filter instanceof Array) tagfilter.set(filter);
 }
 catch( err ) { 
     console.warn("failed to load taglist from localStorage"); 

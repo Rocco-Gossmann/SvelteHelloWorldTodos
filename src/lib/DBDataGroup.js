@@ -15,6 +15,7 @@
 
 import { writable } from "svelte/store";
 import PromiseQueue from "./PromiseQueue";
+
 /** @typedef {string|number} PrimaryKey */
 
 export class DataSet {
@@ -77,31 +78,11 @@ export class DataGroup {
     /** @private */
     autoIncrement = false;
 
-
-    /** Called before a dataset is deleted to give child classes a chance
-    * to prevent unwanted deletions
-    * @protected
-    * @param {DataSet} dataset - the dataset, that is going to be deleted 
-    * @return {Promise.<boolean>}
-    */
-    async validateDrop(dataset) { return true; }
-
-
-    /** Called after a deletion took place, to allow child classes to clean up 
-    * their dependend data
-    * @protected
-    * @param {DataSet} dataset - the dataset, that is going to be deleted 
-    * @return {Promise.<void>}
-    */
-    async afterDrop(dataset) { }
-
-    /** Called after any data was added to the database
-    * @protected
-    * @param {object} dataset - the dataset, that is going to be deleted 
-    * @return {Promise.<void>}
-    */
-    async afterUpdate(data) { }
-
+    async validateDrop() { return true; }
+    async afterDrop() { }
+    async afterUpdate() { }
+    async lockDataSet(data) { return data; }
+    async unlockDataSet(data) { return data; }
 
     /** Constructor
     * @param {import("dexie").Table} table
@@ -118,10 +99,12 @@ export class DataGroup {
 
     /** finds a dataset based on its primary key
     * @param {PrimaryKey} key
+    * @param {CryptoKey} lockKey
     * @returns {Promise.<DataStore>}
     */
-    async findByPK(key) {
+    async findByPK(key, lockKey) {
         const stack = (new Error("")).stack; 
+
         return await this.queue.add(
             this,
             (pk) => this.table.get(pk).then(data => {
@@ -135,9 +118,19 @@ export class DataGroup {
                     return this.dataset.get(key);
                 }
                 else {
-                    const ds = new DataSet(this.table, data);
-                    this.dataset.set(pk, ds);
-                    return Promise.resolve(ds);
+                    
+                    if(lockKey)  {
+                        this.unlockDataSet(data, lockKey).then( ud => {
+                            const ds = new DataSet(this.table, data);
+                            this.dataset.set(pk, ds);
+                            return Promise.resolve(ds);
+                        })
+                    }
+                    else {
+                        const ds = new DataSet(this.table, data);
+                        this.dataset.set(pk, ds);
+                        return Promise.resolve(ds);
+                    }
                 }
             }),
             key
@@ -189,6 +182,38 @@ export class DataGroup {
             await this.afterDrop(keyOrDataSet);
         }
     }
+
+
+    /**
+     * En-/Decrypts all date in this group
+     *
+     * @async
+     * @param {CryptoKey} newkey - Data will be encrypted with this key (if not given, data will just be decrypted)
+     * @param {CryptoKey} oldkey - If data is already encrypted, then this is the key it was encrypted with
+     * @returns {Promise<any>} resolves, once everything is done
+     */
+    async encryptAll(newkey, oldkey) {
+
+        this.table.db.transaction("rw", this.table, async () => {
+
+            await this.table.each( async (ds) => {
+                if(oldkey)
+                    ds = await this.unlockDataSet(ds, oldkey);
+
+                if(newkey)
+                    ds = await this.lockDataSet(ds, newkey);
+                
+                this.table.put(ds);
+            })
+       
+        })
+
+    }
+
+}
+
+if(document.setAppBadge) {
+    document.setAppBadge(2);
 }
 
 export default DataGroup

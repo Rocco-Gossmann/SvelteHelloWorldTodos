@@ -1,6 +1,6 @@
 import db from "../lib/database";
 import { DataGroup, DataSet } from '../lib/DBDataGroup';
-import cryptography from "../lib/cryptography";
+import cryptography, { EncryptedData } from "../lib/cryptography";
 import { writable, type Writable } from "svelte/store";
 
 export class TagData {
@@ -8,6 +8,7 @@ export class TagData {
     color?: string;
     value: string;
     version: number;
+    data?: string;
 }
 
 export type Tag = DataSet<TagData>;
@@ -21,6 +22,9 @@ class CTagManager extends DataGroup<TagData> {
     * (Mainly used for The Autocomplete Datalist right now */
     private valuesStore: Writable<string[]> = writable([]);
 
+//==============================================================================
+// Implement DataGroup
+//==============================================================================
     protected async afterUpdate(data: Partial<TagData>): Promise<any> {
         this.valuesStore.update( store => {
 
@@ -38,6 +42,43 @@ class CTagManager extends DataGroup<TagData> {
             return store;
         })
     }
+
+    protected async lockDataSet(data: Partial<TagData>, key: CryptoKey): Promise<object> {
+        console.log("LockDataset", data, key);
+        if(data.data) throw new Error("Data is already locked :-( ");
+
+        data.data = (await cryptography.synckey.encrypt((new TextEncoder()).encode(JSON.stringify({
+            value: data.value,
+            color: data.color,
+            version: data.version
+        })), key)).toBase64()
+
+        data.value = "encrypted tag";
+        data.color = "#000000";
+        data.version = 999999999;
+
+        return data;
+    }
+
+    protected async unlockDataSet(data: Partial<TagData>, key: CryptoKey): Promise<object> {
+        console.log("Unlock", data, key);
+        if(!data.data) return data;
+
+        let newData: Partial<TagData> = JSON.parse((new TextDecoder()).decode(await 
+            cryptography.synckey.decrypt(
+                EncryptedData.fromBase64(data.data),
+                key
+            )
+        ));
+
+        data.value = newData.value;
+        data.color = newData.color;
+        data.version = newData.version;
+
+        delete data.data;
+        return data;
+    }
+     
 
 //==============================================================================
 // Main-Class
@@ -60,7 +101,6 @@ class CTagManager extends DataGroup<TagData> {
     }
 
     get values(): Writable<string[]> { return this.valuesStore }
-
 }
 
 export const TagManager = new CTagManager();
