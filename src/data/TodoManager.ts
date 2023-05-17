@@ -17,7 +17,9 @@ interface TodoData {
 type Todo = DataSet<TodoData>;
 
 class CTodoManager extends DataGroup<TodoData> {
-    
+   
+    private lastFilter: string[] = [];
+
     private _store: Writable<Todo[]> = writable([]);
 
     async afterDrop(dataset:Todo) {
@@ -27,6 +29,14 @@ class CTodoManager extends DataGroup<TodoData> {
     }
 
     constructor() { super(db.todos, { idField: "id" }) }
+    
+//==============================================================================
+// Hooks
+//==============================================================================
+   protected async onLockUnlock(): Promise<any> {
+        this.filterStore(this.lastFilter);
+   } 
+    
     
 //==============================================================================
 // Implement DataGroup 
@@ -42,7 +52,7 @@ class CTodoManager extends DataGroup<TodoData> {
 
         data.description = "encrypted todo";
         data.done = false;
-        data.tags = [];
+ //       data.tags = [];
 
         return data;
     }
@@ -59,7 +69,7 @@ class CTodoManager extends DataGroup<TodoData> {
 
         data.description = newData.description,
         data.done = newData.done,
-        data.tags = newData.tags
+//        data.tags = newData.tags
 
         delete data.data;
         return data;
@@ -90,14 +100,16 @@ class CTodoManager extends DataGroup<TodoData> {
 
     async filterStore(filter: string[]): Promise<void> {
 
+        this.lastFilter = filter || [];
+
         let query:any = db.todos;
 
-        if(filter.length) {
+        if(this.lastFilter.length) {
             query = (query as Table).where("id").anyOf(
-                await (query as Table).where("tags").anyOf(filter).primaryKeys()
+                await (query as Table).where("tags").anyOf(this.lastFilter).primaryKeys()
             );
 
-            if(filter.length > 1)
+            if(this.lastFilter.length > 1)
                 query = (query as Collection).and( (ds:TodoData) => {
                     let ok = true;
                     for( let a = 0; a < filter.length; a++) {

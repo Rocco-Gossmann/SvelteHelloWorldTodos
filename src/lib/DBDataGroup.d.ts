@@ -55,7 +55,7 @@ export class DataGroup<T> {
     * @param {object} dataset - the dataset, that is going to be deleted 
     * @return {Promise.<any>}
     */
-    protected afterUpdate(data: Partial<T>): Promise<any>;
+    protected afterUpdate(ds: DataSet<T>): Promise<any>;
 
     /** called if something with the Key for encrypting the data has changed
     * (To give childclasses a chance to clear their caches

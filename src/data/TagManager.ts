@@ -62,17 +62,17 @@ class CTagManager extends DataGroup<TagData> {
 //==============================================================================
 // Hooks
 //==============================================================================
-    protected async afterUpdate(data: Partial<TagData>): Promise<any> {
+    protected async afterUpdate(ds: Tag): Promise<any> {
         this.valuesStore.update( store => {
 
-            if(data?.value && store.indexOf(data.value) == -1)
-                store.push(data.value);
+            if(ds.data.value && store.indexOf(ds.data.value) == -1)
+                store.push(ds.data.value);
 
             return store;
         })
     }
 
-    protected async afterDrop(ds: DataSet<TagData>): Promise<any> {
+    protected async afterDrop(ds: Tag): Promise<any> {
         this.valuesStore.update( store => {
             let i = store.indexOf(ds.data.value);
             if(i != -1) store.splice(i, 1);

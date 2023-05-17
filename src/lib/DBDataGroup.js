@@ -24,7 +24,7 @@ export class DataSet {
     _data = {};
 
     /**
-    * @param {import("dexie").Table} table
+    * @param {DataGroup} table
     * @param {object} data
     */
     constructor(table, data) {
@@ -35,15 +35,23 @@ export class DataSet {
         this.subscribe = subscribe;
     }
 
-    set(data) {
-        this.table.put(data)
-        this.parset(data)
+    set(data) { 
+        console.log("data changed set")
+        this.table.update(data); 
     }
 
     get data() { return this._data; }
     set data(dat) {
+        console.log("data changed set data")
         this._data = dat
         this.set(this._data)
+    }
+
+
+    setDataNoWrite(data) {
+        console.log("data changed setDataNoWrite")
+        this._data = data;
+        this.parset(data);
     }
 
     refresh() { this.set(this._data) }
@@ -119,23 +127,27 @@ export class DataGroup {
 
         return await this.queue.add(
             this,
-            (pk) => this.table.get(pk).then(data => {
+            (pk) => this.table.get(pk).then(async data => {
 
                 if (!data) {
                     console.warn(`Request for pk '${pk}' on table '${this.table.name}' resulted in no data for call `, stack);
-                    return Promise.resolve(undefined);
+                    return undefined;
                 }
 
                 if (this.dataset.has(key)) {
+                    let dat = this.dataset.get(key);
                     return this.dataset.get(key);
                 }
                 else {
                     if(this.lockkey)  {
-                        return this.unlockDataSet(data, this.lockkey).then( ud => {
-                            const ds = new DataSet(this.table, ud);
-                            this.dataset.set(pk, ds);
-                            return Promise.resolve(ds);
-                        })
+                        
+                        const ud = await this.unlockDataSet(data, this.lockkey);
+
+                        const ds = new DataSet(this, ud);
+
+                        this.dataset.set(pk, ds);
+
+                        return ds;
                     }
                     else {
                         const ds = new DataSet(this.table, data);
@@ -164,18 +176,21 @@ export class DataGroup {
 
         if (existing) {
             let obj = existing.data;
-            for (let a of existing) obj[a] = data[a];
-            existing.data = obj;
-            await this.afterUpdate(data);
-            return existing;
+            for (let a of Object.keys(obj)) obj[a] = data[a];
+            existing.setDataNoWrite(obj);
         }
-        else {
-            if (await this.table.put(data)) {
-                await this.afterUpdate(data);
-                return await this.findByPK(key);
-            }
-            else throw new Error("failed to insert data");
+
+        if (await this.table.put( this.lockkey
+            ? await this.lockDataSet({...data}, this.lockkey)
+            : data
+        )) {
+            this.dataset.delete(key);
+            const ds = await this.findByPK(key);
+            await this.afterUpdate(ds);
+
+            return ds;
         }
+        else throw new Error("failed to insert data");
     }
 
     /** removes an item from the datagroup
@@ -221,10 +236,6 @@ export class DataGroup {
 
     }
 
-}
-
-if(document.setAppBadge) {
-    document.setAppBadge(2);
 }
 
 export default DataGroup

@@ -17,10 +17,7 @@
             TodoManager.drop(todo);
     };
 
-    const toggleDone = async () => {
-        $todo.done = !$todo.done;
-        $todos = $todos;
-    };
+    const toggleDone = async () => { $todos = $todos; };
 
     const onTagClick = async (tag: DataSet<Tag>) => {
         const key = tag.data.key;
@@ -56,7 +53,6 @@
         ><input
             type="checkbox"
             bind:checked={$todo.done}
-            on:click={() => toggleDone($todo)}
         /></span
     >
 
