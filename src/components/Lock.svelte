@@ -64,10 +64,9 @@
     }
 
     const deleteLock = async () => {
-        throw new Error("not implemented"); return;
         if($key && confirm("this will remove the password protectedion from your todos. Continue?")) {
-            await Tags.encryptAll(undefined, $key);
-            await Todos.encryptAll(undefined, $key);
+            await TagManager.encryptAll(undefined, $key);
+            await TodoManager.encryptAll(undefined, $key);
             localStorage.removeItem("haslock");
             hasPassword.set(false);
             key.set(undefined);

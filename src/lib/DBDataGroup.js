@@ -15,6 +15,7 @@
 
 import { writable } from "svelte/store";
 import PromiseQueue from "./PromiseQueue";
+import { key } from '../data/Lock.ts'
 
 /** @typedef {string|number} PrimaryKey */
 
@@ -75,12 +76,17 @@ export class DataGroup {
     /** @private */
     keyName = "";
 
+    /** @private @type {CryptoKey} */
+    lockkey = undefined;
+
     /** @private */
     autoIncrement = false;
 
     async validateDrop() { return true; }
     async afterDrop() { }
     async afterUpdate() { }
+    async onLockUnlock() {}
+
     async lockDataSet(data) { return data; }
     async unlockDataSet(data) { return data; }
 
@@ -95,6 +101,12 @@ export class DataGroup {
             this.keyName = options.idField;
 
         if(options.autoIncrement) this.autoInrement = true;
+
+        key.subscribe( (key) => {
+            this.lockkey = key;
+            this.dataset.clear();
+            this.onLockUnlock(key);
+        })
     }
 
     /** finds a dataset based on its primary key
@@ -118,10 +130,9 @@ export class DataGroup {
                     return this.dataset.get(key);
                 }
                 else {
-                    
-                    if(lockKey)  {
-                        this.unlockDataSet(data, lockKey).then( ud => {
-                            const ds = new DataSet(this.table, data);
+                    if(this.lockkey)  {
+                        return this.unlockDataSet(data, this.lockkey).then( ud => {
+                            const ds = new DataSet(this.table, ud);
                             this.dataset.set(pk, ds);
                             return Promise.resolve(ds);
                         })

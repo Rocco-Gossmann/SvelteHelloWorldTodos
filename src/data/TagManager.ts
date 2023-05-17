@@ -1,5 +1,5 @@
 import db from "../lib/database";
-import { DataGroup, DataSet } from '../lib/DBDataGroup';
+import { DataGroup, DataSet, type PrimaryKey } from '../lib/DBDataGroup';
 import cryptography, { EncryptedData } from "../lib/cryptography";
 import { writable, type Writable } from "svelte/store";
 
@@ -25,24 +25,6 @@ class CTagManager extends DataGroup<TagData> {
 //==============================================================================
 // Implement DataGroup
 //==============================================================================
-    protected async afterUpdate(data: Partial<TagData>): Promise<any> {
-        this.valuesStore.update( store => {
-
-            if(data?.value && store.indexOf(data.value) == -1)
-                store.push(data.value);
-
-            return store;
-        })
-    }
-
-    protected async afterDrop(ds: DataSet<TagData>): Promise<any> {
-        this.valuesStore.update( store => {
-            let i = store.indexOf(ds.data.value);
-            if(i != -1) store.splice(i, 1);
-            return store;
-        })
-    }
-
     protected async lockDataSet(data: Partial<TagData>, key: CryptoKey): Promise<object> {
         console.log("LockDataset", data, key);
         if(data.data) throw new Error("Data is already locked :-( ");
@@ -78,20 +60,38 @@ class CTagManager extends DataGroup<TagData> {
         delete data.data;
         return data;
     }
-     
+
+//==============================================================================
+// Hooks
+//==============================================================================
+    protected async afterUpdate(data: Partial<TagData>): Promise<any> {
+        this.valuesStore.update( store => {
+
+            if(data?.value && store.indexOf(data.value) == -1)
+                store.push(data.value);
+
+            return store;
+        })
+    }
+
+    protected async afterDrop(ds: DataSet<TagData>): Promise<any> {
+        this.valuesStore.update( store => {
+            let i = store.indexOf(ds.data.value);
+            if(i != -1) store.splice(i, 1);
+            return store;
+        })
+    }
+
+    protected onLockUnlock(key?: CryptoKey): Promise<any> {
+        return this.updateValues(key);
+    }
 
 //==============================================================================
 // Main-Class
 //==============================================================================
     constructor() {
         super(db.tags, { idField: "key" })
-
-        const values = [];
-        this.table.toCollection().each( (tag:TagData) => {
-            values.push(tag.value); 
-        }).then( () => {
-            this.valuesStore.set(values);
-        })
+        this.updateValues();
     }
 
     definePKByValue(value: string): Promise<string> {
@@ -101,7 +101,25 @@ class CTagManager extends DataGroup<TagData> {
     }
 
     get values(): Writable<string[]> { return this.valuesStore }
+
+    updateValues(key?: CryptoKey) {
+        const values = [];
+
+        return this.table.toCollection().each( async (tag:TagData) => {
+            if(tag.data) {
+                if(key)
+                    values.push(((await this.unlockDataSet(tag, key)) as TagData).value)
+            }
+            else values.push(tag.value); 
+        }).then( () => {
+            this.valuesStore.set(values);
+        })
+    }
+
 }
 
 export const TagManager = new CTagManager();
+
 export default TagManager
+
+
