@@ -1,5 +1,6 @@
 import type { Table, Collection } from "dexie";
 import { writable, type Writable } from "svelte/store";
+import cryptography, { EncryptedData } from "../lib/cryptography";
 import db from "../lib/database";
 import { DataGroup, DataSet, type PrimaryKey } from '../lib/DBDataGroup';
 
@@ -10,6 +11,7 @@ interface TodoData {
     done: boolean,
     description: string,
     tags: string[],
+    data?: string
 }
 
 type Todo = DataSet<TodoData>;
@@ -25,7 +27,47 @@ class CTodoManager extends DataGroup<TodoData> {
     }
 
     constructor() { super(db.todos, { idField: "id" }) }
+    
+//==============================================================================
+// Implement DataGroup 
+//==============================================================================
+    protected async lockDataSet(data: TodoData, key: CryptoKey): Promise<TodoData> {
+        if(data.data) throw new Error("Data is already locked :-( ");
+        
+        data.data = (await cryptography.synckey.encrypt((new TextEncoder()).encode(JSON.stringify({
+            description: data.description,
+            done: data.done,
+            tags: data.tags
+        })), key)).toBase64()
 
+        data.description = "encrypted todo";
+        data.done = false;
+        data.tags = [];
+
+        return data;
+    }
+
+    protected async unlockDataSet(data: TodoData, key: CryptoKey): Promise<TodoData> {
+        if(!data.data) return data;
+
+        let newData: Partial<TodoData> = JSON.parse((new TextDecoder()).decode(await 
+            cryptography.synckey.decrypt(
+                EncryptedData.fromBase64(data.data),
+                key
+            )
+        ));
+
+        data.description = newData.description,
+        data.done = newData.done,
+        data.tags = newData.tags
+
+        delete data.data;
+        return data;
+    }
+
+//==============================================================================
+// Methods
+//==============================================================================
     async dropTag(key: string): Promise<void> {
         await db.todos.toCollection().modify( (todo: TodoData) => {
             const i = todo.tags.indexOf(key);

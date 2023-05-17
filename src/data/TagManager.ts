@@ -26,7 +26,6 @@ class CTagManager extends DataGroup<TagData> {
 // Implement DataGroup
 //==============================================================================
     protected async lockDataSet(data: Partial<TagData>, key: CryptoKey): Promise<object> {
-        console.log("LockDataset", data, key);
         if(data.data) throw new Error("Data is already locked :-( ");
 
         data.data = (await cryptography.synckey.encrypt((new TextEncoder()).encode(JSON.stringify({
@@ -43,7 +42,6 @@ class CTagManager extends DataGroup<TagData> {
     }
 
     protected async unlockDataSet(data: Partial<TagData>, key: CryptoKey): Promise<object> {
-        console.log("Unlock", data, key);
         if(!data.data) return data;
 
         let newData: Partial<TagData> = JSON.parse((new TextDecoder()).decode(await 
