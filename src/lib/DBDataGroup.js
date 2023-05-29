@@ -36,8 +36,7 @@ export class DataSet {
     }
 
     set(data) { 
-        this.table.put(data);
-        this.parset(data);
+        this.table.update(data);
     }
 
     get data() { return this._data; }
@@ -148,7 +147,7 @@ export class DataGroup {
                         return ds;
                     }
                     else {
-                        const ds = new DataSet(this.table, data);
+                        const ds = new DataSet(this, data);
                         this.dataset.set(pk, ds);
                         return Promise.resolve(ds);
                     }
