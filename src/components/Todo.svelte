@@ -8,16 +8,12 @@
 
     export let todo;
 
-    $: todos = TodoManager.store;
-
     let showTagInput = false;
 
-    const dropTodo = (todo:unknown) => {
+    const dropTodo = () => {
         if(confirm("remove todo permanently ?"))
-            TodoManager.drop(todo);
+            TodoManager.drop($todo);
     };
-
-    const toggleDone = async () => { $todos = $todos; };
 
     const onTagClick = async (tag: DataSet<Tag>) => {
         const key = tag.data.key;
@@ -54,13 +50,14 @@
         ><input
             type="checkbox"
             bind:checked={$todo.done}
+            on:change={() => TodoManager.refreshView()}
         /></span
     >
 
     <span class="txt">{$todo.description}</span>
 
     <button
-        on:click|preventDefault={() => dropTodo(todo)}
+        on:click|preventDefault={() => dropTodo()}
         class="fa fa-trash-can"
         title="delete"
     />
