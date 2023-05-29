@@ -35,8 +35,9 @@ export class DataSet {
         this.subscribe = subscribe;
     }
 
-    set(data) { 
-        this.table.update(data);
+    async set(data) { 
+        await this.table.update(data)
+        this.parset(data);
     }
 
     get data() { return this._data; }

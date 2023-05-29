@@ -14,7 +14,7 @@ interface TodoData {
     data?: string
 }
 
-type Todo = DataSet<TodoData>;
+export type Todo = DataSet<TodoData>;
 
 class CTodoManager extends DataGroup<TodoData> {
    

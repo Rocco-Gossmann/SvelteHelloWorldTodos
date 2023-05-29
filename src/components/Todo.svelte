@@ -3,10 +3,11 @@
     import { tagfilter } from "../data/TagFilter";
     import TagInput from "./TagInput.svelte";
 
-    import TodoManager from "./../data/TodoManager";
+    import TodoManager, { type Todo } from "./../data/TodoManager";
     import type { DataSet } from "../lib/DBDataGroup";
 
-    export let todo;
+
+    export let todo: Todo;
 
     let showTagInput = false;
 
@@ -29,7 +30,7 @@
             confirm("remove Tag?")
         ) {
             $todo.tags = $todo.tags.filter((t: any) => t && t != ev.detail.data.key);
-            $todo = $todo;
+            await todo.set($todo);
             TodoManager.refreshView();
         }
     };
