@@ -12,7 +12,7 @@
 
     const dropTodo = () => {
         if(confirm("remove todo permanently ?"))
-            TodoManager.drop($todo);
+            TodoManager.drop(todo);
     };
 
     const onTagClick = async (tag: DataSet<Tag>) => {

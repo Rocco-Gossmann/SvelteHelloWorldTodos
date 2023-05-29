@@ -195,10 +195,11 @@ export class DataGroup {
     * @param {PrimaryKey|DataSet} key
     */
     async drop(keyOrDataSet) {
-
+        console.log(keyOrDataSet)
         if (!(keyOrDataSet instanceof DataSet))
-            keyOrDataSet = this.findByPK(keyOrDataSet);
+            keyOrDataSet = await this.findByPK(keyOrDataSet);
 
+        console.log(keyOrDataSet);
         const key = keyOrDataSet.data[this.keyName];
 
         if (await this.validateDrop(keyOrDataSet)) {
