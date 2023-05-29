@@ -24,7 +24,7 @@ export class DataSet {
     _data = {};
 
     /**
-    * @param {DataGroup} table
+    * @param {import("dexie").Table} table
     * @param {object} data
     */
     constructor(table, data) {
@@ -36,20 +36,18 @@ export class DataSet {
     }
 
     set(data) { 
-        console.log("data changed set")
-        this.table.update(data); 
+        this.table.put(data);
+        this.parset(data);
     }
 
     get data() { return this._data; }
     set data(dat) {
-        console.log("data changed set data")
         this._data = dat
         this.set(this._data)
     }
 
 
     setDataNoWrite(data) {
-        console.log("data changed setDataNoWrite")
         this._data = data;
         this.parset(data);
     }

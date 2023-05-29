@@ -34,6 +34,7 @@
         ) {
             $todo.tags = $todo.tags.filter((t: any) => t && t != ev.detail.data.key);
             $todo = $todo;
+            TodoManager.refreshView();
         }
     };
 

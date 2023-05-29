@@ -133,6 +133,8 @@ class CTodoManager extends DataGroup<TodoData> {
         this._store.set(data);
     }
 
+    refreshView() { this.filterStore(this.lastFilter); }
+
     async insert(data: Partial<TodoData>):Promise<any> {
         data.id=Date.now()*1000 + Math.floor(Math.random()*800+100);
         const newDataSet = await this.update(data);
@@ -151,7 +153,5 @@ export const TodoManager = new CTodoManager();
 tagfilter.subscribe( (list:string[]) => {
     TodoManager.filterStore(list);
 })
- 
-
 
 export default TodoManager
