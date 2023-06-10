@@ -19,6 +19,31 @@ export function Buffer2Str( buffer ) {
 
 }
 
+/**
+ * Adds data at the beginning of a TypedArray
+ *
+ * @param {TypedArray} origBuffer - the Array to which to add the data
+ * @param {origBuffer.constructor} newData - the new data to add
+ *
+ * @throws {Error} - if origBuffer is ot a TypedArray 
+ */
+export function BufferPrepend(origBuffer, newData) {
+    if(!ArrayBuffer.isView(origBuffer))
+        throw new Error("origBuffer must be an instance of TypedArray");
+
+    if(!(newData instanceof origBuffer.constructor))
+        throw new Error("new data must be of same type as origBuffer ", origBuffer, newData);
+    
+    const ret = new (origBuffer.constructor)(origBuffer.length + newData.length);
+    ret.set(newData, 0)
+    ret.set(origBuffer, newData.length);
+
+    return ret;
+}
+
+
+
+
 export default {
-    Str2Buffer, Buffer2Str
+    Str2Buffer, Buffer2Str, BufferPrepend
 }

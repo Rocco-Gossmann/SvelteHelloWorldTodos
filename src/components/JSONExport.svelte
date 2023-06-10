@@ -1,27 +1,36 @@
 <script>
+
     import TagManager from "../data/TagManager";
     import TodoManager from "../data/TodoManager";
-    import utils from "../lib/utils";
-    import { base64 } from "../lib/cryptography";
+    import utils, { Str2Buffer } from "../lib/utils";
+    import { base64, synckey } from "../lib/cryptography";
+    import { key, hasPassword } from '../data/Lock'
 
-    async function onBtnClick(ev) {
+
+    async function onBtnClick() {
 
         const obj = {
             "tags":  await TagManager.toArray(),
             "todos": await TodoManager.toArray()
         };
 
-        const payload = base64.encrypt(utils.Str2Buffer(JSON.stringify(obj)));
+        /** @type {Uint8Array} */
+        const data = utils.Str2Buffer(JSON.stringify(obj));
 
-        const url = `data:application/json;base64,${payload}`;
+        let payload = $hasPassword
+            ? utils.BufferPrepend((await synckey.encrypt(data, $key)).toUint8Array(), Str2Buffer("ENC"))
+            : utils.BufferPrepend(data                                              , Str2Buffer("RAW"))
+        
 
+        const url = `data:application/${$hasPassword ? "octet-stream" : "json"};base64,${base64.encrypt(payload)}`;
 
         let a = document.createElement("A")
         a.href = url;
-        a.download = "export.json";
+        a.download = `export.${$hasPassword ? "bin" : "json"}`;
 
         document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
 
     }
 
