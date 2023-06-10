@@ -3,7 +3,7 @@
  * @param {string} str - the string to covert
  * @returns {Uint8Array} 
  */
-function Str2Buffer( str ) {
+export function Str2Buffer( str ) {
     return (new TextEncoder()).encode(str);
 }
 
@@ -14,6 +14,11 @@ function Str2Buffer( str ) {
  * @param {Uint8Array} buffer
  * @returns {string} 
  */
-function Buffer2Str( buffer ) {
+export function Buffer2Str( buffer ) {
     return (new TextDecoder()).decode(buffer);
+
+}
+
+export default {
+    Str2Buffer, Buffer2Str
 }

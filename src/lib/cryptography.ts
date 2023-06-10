@@ -155,21 +155,25 @@ interface CryptoGraphyExport {
     base64: IBase64
 }
 
+export const base64 = {
+    encrypt: base64_encrypt,
+    decrypt: base64_decrypt
+}
+
+export const synckey = {
+    encrypt: synckey_encrypt,
+    decrypt: synckey_decrypt
+}
+
 export const cryptography: CryptoGraphyExport = {
 
     sha256,
     uuid,
     password2CryptoKey,
 
-    synckey: {
-        encrypt: synckey_encrypt,
-        decrypt: synckey_decrypt
-    },
+    synckey,
 
-    base64: {
-        encrypt: base64_encrypt,
-        decrypt: base64_decrypt
-    },
+    base64
 }
 
 export default cryptography; 

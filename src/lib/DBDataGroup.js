@@ -235,6 +235,9 @@ export class DataGroup {
 
     }
 
+    toArray() {
+        return this.table.toArray();  
+    }
 }
 
 export default DataGroup

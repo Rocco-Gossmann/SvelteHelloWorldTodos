@@ -10,6 +10,7 @@
     import ViteUpdatePrompt from './lib/components/ViteUpdatePrompt.svelte';
     import Lock from './components/Lock.svelte';
     import {key, hasPassword} from './data/Lock';
+    import JsonExport from './components/JSONExport.svelte';
 
 </script>
 
@@ -32,6 +33,9 @@
 {#if $hasPassword && !$key}
     please enter your password first
 {:else}
+
+    <JsonExport />
+
     <TagFilter />
 
     <h1 class="text-center">Todos</h1>

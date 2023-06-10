@@ -18,13 +18,13 @@ export class DataGroup<T> {
 
     protected table: Table
 
-    constructor( t: Table, opts: DataGroupConstructorOptions );
+    constructor(t: Table, opts: DataGroupConstructorOptions);
 
-    findByPK(key: PrimaryKey): Promise<DataSet> 
+    findByPK(key: PrimaryKey): Promise<DataSet>
 
     update(data: Partial<T>): Promise<DataSet<T>>
 
-    drop(keyOrDataSet: PrimaryKey|DataSet<T>): Promise<any> 
+    drop(keyOrDataSet: PrimaryKey | DataSet<T>): Promise<any>
 
     /**
      * En-/Decrypts all date in this group
@@ -32,7 +32,11 @@ export class DataGroup<T> {
      * @param {CryptoKey} oldkey - If data is already encrypted, then this is the key it was encrypted with
      * @returns {Promise<any>} resolves, once everything is done
      */
-     encryptAll (newkey:CryptoKey|undefined, oldkey:CryptoKey|undefined): Promise<any> 
+    encryptAll(newkey: CryptoKey | undefined, oldkey: CryptoKey | undefined): Promise<any>
+
+
+    toArray(): Promise<Object[]>;
+
 
 //==============================================================================
 // Hooks
