@@ -1,8 +1,5 @@
 <script lang="ts">
     import './assets/main.css'
-    
-    import './assets/lib/noscrollbars.js'
-    import './assets/lib/noscrollbars.css'
 
     import TagDataList from './components/TagDataList.svelte';
 
@@ -13,6 +10,7 @@
     import ViteUpdatePrompt from './lib/components/ViteUpdatePrompt.svelte';
     import Lock from './components/Lock.svelte';
     import {key, hasPassword} from './data/Lock';
+
 </script>
 
 <svelte:head>

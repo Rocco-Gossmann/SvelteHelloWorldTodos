@@ -7,3 +7,15 @@
 BUTTON.fa {
     font-size: 1.25rem;
 }
+
+
+/*============================================================================== 
+ * Disable Scrollbar
+ *============================================================================*/
+::-webkit-scrollbar { display: none }
+
+HTML, HTML *  {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
