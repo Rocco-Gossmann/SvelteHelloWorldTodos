@@ -36,16 +36,6 @@ Help me to learn:
   - ✔ Add "Locking" and "Unlocking" mechanisms to the APP
     - ✔ encrypt Tags in the database
     - ✔ encrypt TODOs in the database
-- ⬜ export encrypted JSON containing all todos and tags 
+- ✔ export encrypted JSON containing all todos and tags 
 - ⬜ import encrypted JSON and restore IndexedDB from it
 
-### Step 4 - Involving the Cloud (aka. another Computer)
-- ⬜ Sync Data with a server
-  - ⬜ Client-Profile (Name and maybe picture)
-  - ⬜ Authentication 
-  - ⬜ Save Encrypted Todolist on Server
-  - ⬜ Load Encrypted TodoList from Server
-
-### Step 5 - Shared Todo Lists
-- ⬜ Let other users load and decrypt the TodoList 
-- ⬜ Figure out, how to do it without the server ever having to store the public key.
