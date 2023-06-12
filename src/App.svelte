@@ -11,6 +11,7 @@
     import Lock from './components/Lock.svelte';
     import {key, hasPassword} from './data/Lock';
     import JsonExport from './components/JSONExport.svelte';
+    import JsonImport from './components/JSONImport.svelte';
 
 </script>
 
@@ -35,6 +36,7 @@
 {:else}
 
     <JsonExport />
+    <JsonImport />
 
     <TagFilter />
 
