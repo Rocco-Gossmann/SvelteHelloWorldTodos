@@ -10,8 +10,8 @@
     async function onBtnClick() {
 
         const obj = {
-            "tags":  await TagManager.toArray(),
-            "todos": await TodoManager.toArray()
+            "tags":  await TagManager.toArray($key),
+            "todos": await TodoManager.toArray($key)
         };
 
         /** @type {Uint8Array} */
@@ -37,7 +37,7 @@
 </script>
 
 
-<a role="button" href={"#"} on:click|preventDefault={onBtnClick} class="" title="export JSON">
+<a role="button" href={"#"} on:click|preventDefault={onBtnClick} class="" title="export to File">
     <li  class="fas fa-file-export"></li>
 </a>
 

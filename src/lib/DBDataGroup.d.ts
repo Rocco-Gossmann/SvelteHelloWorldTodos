@@ -34,8 +34,10 @@ export class DataGroup<T> {
      */
     encryptAll(newkey: CryptoKey | undefined, oldkey: CryptoKey | undefined): Promise<any>
 
-
-    toArray(): Promise<Object[]>;
+    /**
+     * @param {CryptoKey} key?   - if set, the data will be unlocked before it is returned
+     */
+    toArray(key?: CryptoKey): Promise<Object[]>;
 
 
 //==============================================================================

@@ -235,8 +235,21 @@ export class DataGroup {
 
     }
 
-    toArray() {
-        return this.table.toArray();  
+    async toArray(key) {
+
+        const res = [];
+        await this.table.db.transaction("r", this.table, async () => {
+
+            await this.table.each( async (ds) => {
+                if(key)
+                    ds = await this.unlockDataSet(ds, key);
+             
+                res.push(ds);
+            })
+
+        })
+
+        return res;
     }
 }
 
