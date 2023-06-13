@@ -6,6 +6,8 @@
     import { toast } from "../lib/components/Toast.svelte";
     import Modal from "../lib/components/Modal.svelte";
     import { EncryptedData, password2CryptoKey, synckey } from "../lib/cryptography";
+    import TagManager from "../data/TagManager";
+    import TodoManager from "../data/TodoManager";
    
 
     /** @type {HTMLInputElement} */
@@ -28,22 +30,15 @@
 
         let pass = frm.pwinput.value;
     
-        
         password2CryptoKey(pass).then( p => resolvePassword(p) );
 
         showPasswordDialog = false;
     }
 
 
-
     /** @type {HTMLInputElement} */
     let fileInput;
     function onBtnClick() { fileInput.click(); }
-
-   
-
-
-
 
 
     const fileHandler = new FileReader();
@@ -61,11 +56,7 @@
             case "ENC":
                 try { 
                     let key = await askForPassword();
-                    console.log(buff.slice(3));
-
                     const encData = EncryptedData.fromUint8Array(new Uint8Array(buff.slice(3)));
-                    console.log(encData);
-
                     str = Utils.Buffer2Str(await synckey.decrypt(encData, key));
                 }
                 catch( err ) { 
@@ -84,12 +75,54 @@
                 break;
                 
 
-            default: toast("not a valid file", "error", 4);
+            default: 
+                toast("not a valid file", "error", 4);
+                return;
         }
 
-        console.log(obj);
-    }
+        if(!(obj.tags  && obj.todos)) {
+            toast("not a valid file", "error", 4);
+            return;
+        }
 
+        for(let tag of obj.tags) {
+            if(!tag.value || !tag.key) {
+                toast("encountered currupted tag", "error", 4); 
+                continue;
+            }
+                
+            await TagManager.update({
+                key: tag.key,
+                value: tag.value,
+                color: tag.color || '#a0a0a0'
+            });
+        }
+
+        for(let todo of obj.todos) {
+            const impTodo = { tags: [] };
+            if(!todo.description || !todo.id) {
+                toast("encountered currupted todo", "error", 4); 
+                continue;
+            }
+
+            impTodo.description = todo.description;
+            impTodo.done = (todo.done || false) != false;
+            let id = parseInt("" + (todo.id || 0));
+            if(!isNaN(id)) impTodo.id = id;
+
+            if(Array.isArray(todo.tags)) {
+                for(let tag of todo.tags) {
+                    if(typeof(tag) === "string")
+                        impTodo.tags.push(tag);
+                }
+            }
+
+            await TodoManager.update(impTodo);
+        }
+
+        toast("import finished", "success", 3);
+        TodoManager.refreshView();
+    }
 
 
     onMount( () => { 
