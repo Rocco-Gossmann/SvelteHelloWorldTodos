@@ -8,14 +8,18 @@
 
     let me: HTMLElement;
 
-    onMount(  () => { document.body.appendChild(me); open = true; })
-    onDestroy(() => { document.body.removeChild(me); open = false;})
+    onMount(  () => { 
+        document.body.appendChild(me); 
+        document.body.style.overflow = "hidden"
+        open = true; 
+    })
 
-    $: if(open) 
-        document.body.style.overflow = "hidden";
-    else 
-        document.body.style.overflow = "";
-    
+    onDestroy(() => { 
+        document.body.removeChild(me); 
+        document.body.style.overflow = ""
+        open = false;
+    })
+
 
 </script>
 
