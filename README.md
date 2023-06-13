@@ -37,5 +37,5 @@ Help me to learn:
     - ✔ encrypt Tags in the database
     - ✔ encrypt TODOs in the database
 - ✔ export encrypted JSON containing all todos and tags 
-- ⬜ import encrypted JSON and restore IndexedDB from it
+- ✔ import encrypted JSON and restore IndexedDB from it
 
